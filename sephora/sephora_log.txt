@@ -1,0 +1,66 @@
+Moisturizers 1 60
+Moisturizers 2 60
+Moisturizers 3 60
+Moisturizers 4 60
+Moisturizers 5 60
+Moisturizers 6 60
+Moisturizers 7 60
+Moisturizers 8 60
+Moisturizers 9 60
+Moisturizers 10 60
+Moisturizers 11 60
+Moisturizers 12 60
+Moisturizers 13 60
+Moisturizers 14 44
+Cleansers 1 60
+Cleansers 2 60
+Cleansers 3 60
+Cleansers 4 60
+Cleansers 5 60
+Cleansers 6 60
+Cleansers 7 60
+Cleansers 8 60
+Cleansers 9 12
+Treatments 1 60
+Treatments 2 60
+Treatments 3 60
+Treatments 4 60
+Treatments 5 24
+Treatments 6 12
+Treatments 7 12
+Treatments 8 12
+Treatments 9 12
+Treatments 10 12
+Eye Care 1 60
+Eye Care 2 60
+Eye Care 3 12
+----
+Treatments 1 60
+Treatments 2 60
+Treatments 3 60
+Treatments 4 60
+Treatments 5 60
+Treatments 6 60
+Treatments 7 60
+Treatments 8 60
+Treatments 9 60
+Treatments 10 60
+Eye Care 1 60
+Eye Care 2 60
+Eye Care 3 60
+Eye Care 4 39
+Masks 1 60
+Masks 2 60
+Masks 3 60
+Masks 4 60
+Masks 5 60
+Masks 6 26
+Sun Care 1 60
+Sun Care 2 60
+Sun Care 3 60
+Sun Care 4 8
+Self Tanners 1 60
+Self Tanners 2 6
+Lip Treatments 1 60
+Lip Treatments 2 60
+Lip Treatments 3 46
