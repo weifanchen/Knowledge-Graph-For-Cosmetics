@@ -17,7 +17,9 @@ def processIngredient(string):
 
 def selenium(url):
     gaps = 0.5
-    driver = webdriver.Chrome('./sephora/sephora/spiders/chromedriver')
+    # driver = webdriver.Chrome('./sephora/sephora/spiders/chromedriver')
+    driver = webdriver.Chrome('./chromedriver')
+
     driver.get(url)
     time.sleep(gaps*4)
     try:
