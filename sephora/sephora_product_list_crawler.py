@@ -42,7 +42,7 @@ def parse_content(driver,f,g):
         f.write("{}\n".format(tmp_url))
 
 def parse(url):
-    driver = webdriver.Chrome(executable_path="/Users/weifanchen/chromedriver")
+    driver = webdriver.Chrome(executable_path="./chromedriver")
     driver.get(url)
     time.sleep(3)
     #WebDriverWait(driver,10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div#inside_holder')))
