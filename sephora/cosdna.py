@@ -1,21 +1,14 @@
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 import time
 import json
 import random
-
-
-#driver = webdriver.Chrome('/Users/weifanchen/chromedriver')
-#driver = webdriver.Chrome(executable_path="./chromedriver")
-#driver.get('http://www.cosdna.com/eng/ingredients.php')
+import re
 
 
 def deal_with_list(column,keyword,ingredient_info):
+    # for the columns that are not only integer e.g. 1-3
     if column==['']:
         ingredient_info[keyword]=None
     elif len(column)==1:
@@ -44,105 +37,114 @@ def get_ingredient_info(soup,ingredient_profile):
             deal_with_list(safety,'safety',ingredient_info)
         else:
             ingredient_info['safety'] = None
-        save_single_ingredient(ingredient_info)
+
+        save_new_ingredient(ingredient_info)
         full_ingredient_list.append(ingredient_info)
     return full_ingredient_list
 
 def ingredient_preprocessing(text):
     if '\n\n' in text:
         main_text = text.split('\n\n')[1:]
-
+        main_text = ', '.join(main_text) +'\n'
+    else:
+        main_text = text
+    main_text = main_text+ ', '.join(re.findall(r'\-(.*?)\:',text))
+    main_text = main_text.replace(':',',')
+    return main_text
 
 
 def get_soup(driver,product):
-    #driver = webdriver.Chrome(executable_path="./chromedriver")
     driver.get('http://www.cosdna.com/eng/ingredients.php')
     ingredients_list_box = driver.find_element_by_css_selector('textarea.form-control')
     text=ingredient_preprocessing(product['ingredients'])
     ingredients_list_box.send_keys(text)
     ingredients_list_box.submit() 
     time.sleep(random.randint(2,4))
+    try:
+        element = driver.find_element_by_css_selector('table.table.table-hover.border')
+        html = driver.execute_script("return arguments[0].outerHTML;", element)
+        soup = BeautifulSoup(html, 'html.parser')
+        return soup
+    except:
+        return ''
 
-    element = driver.find_element_by_css_selector('table.table.table-hover.border')
-    html = driver.execute_script("return arguments[0].outerHTML;", element)
-    soup = BeautifulSoup(html, 'html.parser')
-    return soup
-
-def save_single_ingredient(ingredient_info):
+def save_new_ingredient(ingredient_info):
+    # save new ingredient to ingredient.jl
     if ingredient_info not in ingredient_profile:
         ingredient_profile.append(ingredient_info)
         ingredientfile.write(json.dumps(ingredient_info) + '\n')
     else:
         pass 
         
+def get_soup_via_name(driver,keyword):
+    # for product without ingredients
+    driver.get('https://www.cosdna.com/eng/product.php')
+    product_name_box = driver.find_element_by_css_selector('input.form-control')
+    product_name_box.send_keys(keyword)
+    product_name_box.send_keys(Keys.ENTER)
+    time.sleep(random.randint(1,3))
+    try:
+        sort_latest = driver.find_element_by_css_selector('div.sort a:first-of-type') #CLICK THE FIRST ONE
+        sort_latest.click()
+        first_product = driver.find_element_by_css_selector('table.table.table-hover tbody tr td.pl-0 a:first-of-type') # click 
+        first_product.click()
 
-product_list_path = "./sephora/output/sephora_skincare_product.jl"
+        element = driver.find_element_by_css_selector('table.table.table-hover.border')
+        html = driver.execute_script("return arguments[0].outerHTML;", element)
+        soup = BeautifulSoup(html, 'html.parser')
+        print(keyword)
+        return soup
+    except:
+        print('no result: ',keyword)
+        return ''
+
+product_list_path = "./output/sephora_skincare_product_revised.jl"
 product_list = []
 with open(product_list_path) as json_file:
     for line in json_file:
         product_list.append(json.loads(line))
 
-ingredient_profile_path = 'ingredients.jl'
+ingredient_profile_path = './output/ingredients.jl'
 ingredient_profile = []
 with open(ingredient_profile_path) as f:
     for line in f:
         ingredient_profile.append(json.loads(line))
 
-productfile = open('sephora_skincare_product_2.jl', 'a+')
-ingredientfile = open('ingredients.jl', 'a+')
+productfile = open('./output/sephora_skincare_product_3.jl', 'a+')
+ingredientfile = open('./output/ingredients.jl', 'a+')
+#product_wo_ingredient = open('./output/product_wo_ingredient.jl', 'a+')
+
+driver = webdriver.Chrome('/Users/weifanchen/chromedriver')
 
 
 for product in product_list[:]:
-    driver = webdriver.Chrome('/Users/weifanchen/chromedriver')
-    soup = get_soup(driver,product)
-    ingredient_info_list = get_ingredient_info(soup,ingredient_profile)
-    product['ingredient_list'] = [i['name'] for i in ingredient_info_list]
+    if product['ingredients'] == '':
+        #product_wo_ingredient.write(json.dumps(product) + '\n')
+        keyword = product['brand']+ ' '+product['product_name']
+        soup = get_soup_via_name(driver,keyword)
+    else:
+        soup = get_soup(driver,product)
+    if soup:
+        ingredient_info_list =  get_ingredient_info(soup,ingredient_profile)
+        product['ingredient_list'] = [i['name'] for i in ingredient_info_list]
+    else:
+        product['ingredient_list'] = []
     productfile.write(json.dumps(product) + '\n')
-    driver.quit()
-    time.sleep(random.randint(0,5))
 
-for i in ingredient_profile:
-    ingredientfile.write(i+'\n')
+
+driver.quit()
 
 ingredientfile.close()
 productfile.close()
+#product_wo_ingredient.close()
 
 
 '''
-FORMAT
-{'name': string, 'function': list, 'acne': None/int, 'irritant': None/list, 'safety': None/list}, 
-**** change acne to list as well?
-{'name': 'Linalool', 'function': ['Fragrance'], 'acne': None, 'irritant': None, 'safety': [5]}, 
-{'name': 'Lavandula Angustifolia Oil', 'function': ['Fragrance', 'Emollient', 'Plant extract'], 'acne': None, 'irritant': None, 'safety': [1]}
-'''
-'''
-manually find ingredient
-2325165
-'''
+selenium.common.exceptions.NoSuchElementException: Message: no such element: Unable to locate element: {"method":"css selector","selector":"table.table.table-hover.border"}
+  (Session info: chrome=80.0.3987.132)
 
-'''
-[p['product_id'] for p in product_list if p['ingredient_list']==[]]
-[2031417, 2263713, 2264810, 2241057, 2051944, 662429, 1589118, 1064062, 2070811, 2264109, 1818772]
-[p['product_id'] for p in product_list if p['ingredient_list']==[]]
-[len(p['ingredients'].split('\n\n')) for p in product_list if '\n\n' in p['ingredients']] # only 207?
-
-testfile = open('ingredients_test.jl','w')
-
-temp_list=[]
-for product in product_list[:]:
-    id=product['product_id']
-    ingredient=product['ingredients']
-    temp={'id':id,'ingredient':ingredient}
-    temp_list.append(temp)
-    #testfile.write(json.dumps(temp) + '\n')
-
-for k,v in temp_list:
-    if '\n\n' in v:
-sum([True for d in temp_list if '\n\n' in d['ingredient']])
-testfile.close()
-
-[d['ingredient'] for d in temp_list if d['id']==1686427]
-[(d['id'],len(d['ingredient'].split('\n\n'))) for d in temp_list if '\n\n' in d['ingredient']]
+raise RemoteDisconnected("Remote end closed connection without"
+http.client.RemoteDisconnected: Remote end closed connection without response
 '''
 
     
