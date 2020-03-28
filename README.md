@@ -9,3 +9,7 @@
     > [p['product_id'] for p in product_list3 if p['ingredient_list']==[] and p["minicategory"]=="Value & Gift Sets"] = [2202505]
 
 # 70 products p['ingredient_list']==[] 
+
+
+# Reference 
+- [THESE ARE THE SKINCARE INGREDIENTS YOU SHOULD NEVER MIX](https://www.beautybay.com/edited/skincare-ingredients-you-should-never-mix/)
