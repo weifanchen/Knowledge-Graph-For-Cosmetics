@@ -4596,3 +4596,22 @@
 {"name": "Sargassum Vulgare Extract", "function": null, "acne": null, "irritant": null, "safety": null}
 {"name": "Caesalpinia Spinosa", "function": null, "acne": null, "irritant": null, "safety": null}
 {"name": "Siegesbeckia orientalis", "function": null, "acne": null, "irritant": null, "safety": null}
+{"name": "Ximenia Americana Seed Oil", "function": ["Emollient"], "acne": null, "irritant": null, "safety": [1]}
+{"name": "Soybean Lipid", "function": null, "acne": null, "irritant": null, "safety": [1]}
+{"name": "Dead Sea Mud", "function": null, "acne": null, "irritant": null, "safety": [1]}
+{"name": "Palm", "function": null, "acne": null, "irritant": null, "safety": [1]}
+{"name": "or", "function": ["Plant extract"], "acne": null, "irritant": null, "safety": null}
+{"name": "Palm kernel oil", "function": ["Emollient"], "acne": null, "irritant": null, "safety": [1]}
+{"name": "Triceteareth-4 phosphate", "function": ["Surfactant"], "acne": null, "irritant": null, "safety": [3, 4, 5, 6, 7]}
+{"name": "Glyceryl triacetyl ricinoleate", "function": ["Solvent", "Viscosity Control", "Emollient"], "acne": null, "irritant": null, "safety": [1]}
+{"name": "Melilotus Officinalis Extract", "function": ["Anti-inflammatory", "Astringent"], "acne": null, "irritant": null, "safety": [1]}
+{"name": "Myrothamnus Flabellifolia Leaf Extract", "function": ["Plant extract", "Emollient"], "acne": null, "irritant": null, "safety": null}
+{"name": "Rice", "function": ["Viscosity Control"], "acne": null, "irritant": null, "safety": [1]}
+{"name": "Propylene Glycol Dipelargonate", "function": ["Viscosity Control"], "acne": [2], "irritant": [2], "safety": [1]}
+{"name": "Pinus Pentaphylla Seed Oil", "function": ["Emollient"], "acne": null, "irritant": null, "safety": null}
+{"name": "Punica Granatum Juice Extract", "function": null, "acne": null, "irritant": null, "safety": null}
+{"name": "Capric/Caprylic Triglycerides", "function": ["Fragrance"], "acne": null, "irritant": null, "safety": [1]}
+{"name": "Apium graveolens", "function": null, "acne": null, "irritant": null, "safety": null}
+{"name": "Platanus Occidentalis Bark Extract", "function": null, "acne": null, "irritant": null, "safety": [1]}
+{"name": "PEG-9", "function": ["Solvent", "Moisturizer"], "acne": null, "irritant": null, "safety": [3]}
+{"name": "Phragmites Communis Extract", "function": null, "acne": null, "irritant": null, "safety": [1]}
