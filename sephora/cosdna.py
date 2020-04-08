@@ -6,6 +6,11 @@ import json
 import random
 import re
 
+'''
+scrapy the ingredients('ingredient_list') and its information(safety, acne etc) from cosdna according ingredient description('ingredients')
+also save the ingredients in ingredients.jl
+
+'''
 
 def deal_with_list(column,keyword,ingredient_info):
     # for the columns that are not only integer e.g. 1-3
@@ -53,8 +58,9 @@ def ingredient_preprocessing(text):
     return main_text
 
 
-def get_soup(driver,product):
+def get_soup_by_ingredient(driver,product):
     driver.get('http://www.cosdna.com/eng/ingredients.php')
+    time.sleep(random.randint(2,4))
     ingredients_list_box = driver.find_element_by_css_selector('textarea.form-control')
     text=ingredient_preprocessing(product['ingredients'])
     ingredients_list_box.send_keys(text)
@@ -92,13 +98,15 @@ def get_soup_via_name(driver,keyword):
         element = driver.find_element_by_css_selector('table.table.table-hover.border')
         html = driver.execute_script("return arguments[0].outerHTML;", element)
         soup = BeautifulSoup(html, 'html.parser')
-        print(keyword)
+        print('search by name: ',keyword)
         return soup
     except:
-        print('no result: ',keyword)
+        print('no result by name: ',keyword)
         return ''
 
-product_list_path = "./output/sephora_skincare_product_revised.jl"
+# product_list_path = "./output/sephora_skincare_product_ingredient_list.jl"
+product_list_path = "./output/sephora_skincare_product_6_updated2.jl"
+
 product_list = []
 with open(product_list_path) as json_file:
     for line in json_file:
@@ -110,7 +118,7 @@ with open(ingredient_profile_path) as f:
     for line in f:
         ingredient_profile.append(json.loads(line))
 
-productfile = open('./output/sephora_skincare_product_3.jl', 'a+')
+productfile = open('./output/sephora_skincare_product_6_updated3.jl', 'a+')
 ingredientfile = open('./output/ingredients.jl', 'a+')
 #product_wo_ingredient = open('./output/product_wo_ingredient.jl', 'a+')
 
@@ -118,19 +126,23 @@ driver = webdriver.Chrome('/Users/weifanchen/chromedriver')
 
 
 for product in product_list[:]:
-    if product['ingredients'] == '':
-        #product_wo_ingredient.write(json.dumps(product) + '\n')
-        keyword = product['brand']+ ' '+product['product_name']
-        soup = get_soup_via_name(driver,keyword)
-    else:
-        soup = get_soup(driver,product)
+    soup=''
+    if product['ingredient_list'] == []:
+        #print('empty ingredient list',product['product_name'])
+        if product['ingredients'] != '':
+            soup = get_soup_by_ingredient(driver,product)
+        if not soup:
+            #print('empty ingredient description',product['product_name'])
+            keyword = product['brand']+ ' '+product['product_name']
+            soup = get_soup_via_name(driver,keyword)
     if soup:
         ingredient_info_list =  get_ingredient_info(soup,ingredient_profile)
         product['ingredient_list'] = [i['name'] for i in ingredient_info_list]
-    else:
-        product['ingredient_list'] = []
-    productfile.write(json.dumps(product) + '\n')
+    #productfile.write(json.dumps(product) + '\n')
 
+for p in product_list:
+    productfile.write(json.dumps(p) + '\n')
+    
 
 driver.quit()
 
