@@ -37,6 +37,10 @@ class productGraph:
         self.my_kg.add((product_url_uri, RDF.type, RDFS.Class))
         self.my_kg.add((product_url_uri, RDFS.subClassOf, MYNS['skincare_product']))
 
+        product_brand_uri = URIRef(MYNS['brand']) 
+        self.my_kg.add((product_brand_uri, RDF.type, RDFS.Class))
+        self.my_kg.add((product_brand_uri, RDFS.subClassOf, MYNS['skincare_product']))
+
         #product
     
     def define_category(self):
@@ -51,7 +55,7 @@ class productGraph:
         minicategory_uri = URIRef(MYNS['minicategory']) 
         self.my_kg.add((minicategory_uri, RDF.type, RDFS.Class))
         self.my_kg.add((minicategory_uri,RDFS.subClassOf,MYNS['subcategory']))
-    
+
     def define_property(self):
         # size cost price
         cost_uri = URIRef(MYNS['has_price']) 
@@ -66,6 +70,11 @@ class productGraph:
         self.my_kg.add((size_uri, RDFS.domain, MYNS['price']))
         self.my_kg.add((size_uri, RDFS.range, MYNS['size']))
 
+        from_product_uri = URIRef(MYNS['has_size']) 
+        self.my_kg.add((from_product_uri, RDF.type, RDF.Property))
+        self.my_kg.add((from_product_uri, RDFS.label,Literal('from product')))
+        self.my_kg.add((size_uri, RDFS.domain, MYNS['size_price_pair']))
+        self.my_kg.add((size_uri, RDFS.range, MYNS['skincare_product']))
 
         
     def declare(self):
@@ -76,8 +85,8 @@ class productGraph:
         self.my_kg.add((node_uri,MYNS['product_name'],XSD.string))
         self.my_kg.add((node_uri,MYNS['brand'],XSD.string))
         self.my_kg.add((node_uri,MYNS['size_price_pair'],XSD.string))
-        self.my_kg.add((node_uri,MYNS['size'],XSD.string)) #### unify to ml or ?
-        self.my_kg.add((node_uri,MYNS['price'],XSD.double))
+        #self.my_kg.add((node_uri,MYNS['size'],XSD.string)) #### unify to ml or ?
+        #self.my_kg.add((node_uri,MYNS['price'],XSD.double))
         self.my_kg.add((node_uri,MYNS['numOfReviews'],XSD.integer))
         self.my_kg.add((node_uri,MYNS['numOfLoves'],XSD.integer))
         self.my_kg.add((node_uri,MYNS['stars'],XSD.double))
@@ -99,6 +108,7 @@ class productGraph:
             cate_uri = URIRef(c_uri)
             self.my_kg.add((cate_uri,RDF.type,MYNS[keyword]))
             self.my_kg.add((cate_uri,RDFS.label,Literal(c)))
+
         if keyword=='category': self.category_dict=cate_dict
         elif keyword=='subcategory': self.subcategory_dict=cate_dict
         elif keyword=='minicategory': self.minicategory_dict=cate_dict
@@ -146,11 +156,18 @@ class productGraph:
         self.my_kg.add((product_uri,MYNS['category'], MYNS[self.category_dict[p['category']]]))
         self.my_kg.add((product_uri,MYNS['subcategory'], MYNS[self.subcategory_dict[p['subcategory']]]))
         self.my_kg.add((product_uri,MYNS['minicategory'], MYNS[self.minicategory_dict[p['minicategory']]]))
+        self.my_kg.add((product_uri,MYNS['ingredient_description'],Literal(p['ingredients'])))
+        for ing in p['ingredient_list']:
+            self.my_kg.add((product_uri,MYNS['ingredient'],Literal(ing)))
         # add size and price
         if len(p['prices'])==len(p['sizes']) and len(p['prices'])>0: 
             for i in range(len(p['prices'])):
-                self.my_kg.add((product_uri, MYNS['price'], Literal(self.extract_price(p['prices'][i]))))
-                self.my_kg.add((product_uri, MYNS['sizes'], Literal(self.extract_size(p['sizes'][i]))))
+                each_size_uri = URIRef('p_'+str(p['product_id'])+'_'+str(i))
+                self.my_kg.add((product_uri, MYNS['size_price_pair'], each_size_uri))
+                self.my_kg.add((each_size_uri, MYNS['price'], Literal(self.extract_price(p['prices'][i]))))
+                self.my_kg.add((each_size_uri, MYNS['size'], Literal(self.extract_size(p['sizes'][i]))))
+                self.my_kg.add((each_size_uri, MYNS['from_product'], product_uri))
+
         elif len(p['prices'])==0:
             print('empty price/size ' ,p['product_id'])
         else:
@@ -189,7 +206,9 @@ product = {"url": "https://www.sephora.com/product/original-skin-retexturizing-m
 '''
 
 
-
+for p in products:
+    if len(p['sizes'])==1 and 'oz' not in p['sizes'][0]:
+        print(p['sizes'])
 
 
 
