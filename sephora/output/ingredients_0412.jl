@@ -123,7 +123,7 @@
 {"name":"Magnesium sulfate","function":["Viscosity Control"],"acne":null,"irritant":null,"safety":[1],"synonym":["Magnesium sulfate"],"ingredient_id":"f22fc71924","chem_id":"24083"}
 {"name":"Paraffin","function":["Viscosity Control"],"acne":null,"irritant":null,"safety":[1],"synonym":["Paraffin wax","Hard paraffin","Paraffin"],"ingredient_id":"67f50e294","chem_id":null}
 {"name":"Tocopheryl succinate","function":["Antioxidant"],"acne":null,"irritant":null,"safety":[1],"synonym":["Vitamin E Succinate","Alpha-tocopheryl Hydrogen Succinate","D-alpha-Tocopherol succinate","Tocopheryl succinate"],"ingredient_id":"c115219840","chem_id":null}
-{"name":"Niacin","function":["Antioxidant","Whitening"],"acne":null,"irritant":null,"safety":[1],"synonym":["Vitamin B3","Niacin","Nicotinic Acid"],"ingredient_id":"b9b055272","chem_id":"#query=Niacin&input_type=smiles"}
+{"name":"Niacin","function":["Antioxidant","Whitening"],"acne":null,"irritant":null,"safety":[1],"synonym":["Vitamin B3","Niacin","Nicotinic Acid"],"ingredient_id":"b9b055272","chem_id":"938"}
 {"name":"Beta Carotene","function":["Pigment","Antioxidant"],"acne":[1],"irritant":[0],"safety":[2],"synonym":["CI 40800","CI 75130","\u03b2-Carotene","Beta Carotene"],"ingredient_id":"498abc69","chem_id":"5280489"}
 {"name":"Decyl Oleate","function":["Solvent","Synthetic ester","Emollient"],"acne":[3],"irritant":[0],"safety":[1],"synonym":["Decyl Oleate"],"ingredient_id":"3209cd1019","chem_id":"5363234"}
 {"name":"Aluminum distearate","function":["Viscosity Control"],"acne":null,"irritant":null,"safety":[3],"synonym":["Hydroxyaluminum distearate","Aluminum distearate"],"ingredient_id":"1b07f41278","chem_id":null}
@@ -1721,7 +1721,7 @@
 {"name":"Ormenis Multicaulis Flower Wax","function":["Plant extract","Emollient"],"acne":null,"irritant":null,"safety":[1],"synonym":["Ormenis Multicaulis Flower Wax"],"ingredient_id":"b3980914342","chem_id":null}
 {"name":"Sodium carbonate","function":["Buffering agent"],"acne":null,"irritant":null,"safety":[1],"synonym":["Sodium carbonate"],"ingredient_id":"1eb1da2580","chem_id":"10340"}
 {"name":"Polyglyceryl-4 oleate","function":["Emulsifier"],"acne":null,"irritant":null,"safety":[1],"synonym":["Polyglyceryl-4 oleate"],"ingredient_id":"91cf392342","chem_id":null}
-{"name":"CoA","function":["Skin Conditioning"],"acne":null,"irritant":null,"safety":[1],"synonym":["CoASH","HSCoA","Coenzyme A","CoA"],"ingredient_id":"3847f41134","chem_id":"#query=CoA&input_type=smiles"}
+{"name":"CoA","function":["Skin Conditioning"],"acne":null,"irritant":null,"safety":[1],"synonym":["CoASH","HSCoA","Coenzyme A","CoA"],"ingredient_id":"3847f41134","chem_id":"87642"}
 {"name":"Squalane Oil","function":["Emollient"],"acne":[1],"irritant":[0],"safety":[1],"synonym":["Squalane Oil"],"ingredient_id":"nm3317946694101006425","chem_id":null}
 {"name":"Hydrolyzed Ceratonia Siliqua Seed Extract","function":["Fragrance"],"acne":null,"irritant":null,"safety":null,"synonym":["Hydrolyzed Ceratonia Siliqua Seed Extract"],"ingredient_id":"nm3079687011833898693","chem_id":null}
 {"name":"Argania Spinosa Kernel Extract","function":["Plant extract"],"acne":null,"irritant":null,"safety":[1],"synonym":["Argania Spinosa Kernel Extract"],"ingredient_id":"c51bcb12538","chem_id":null}
@@ -2128,7 +2128,7 @@
 {"name":"Wheat","function":["Plant extract"],"acne":null,"irritant":null,"safety":[1],"synonym":["Wheat","Triticum Vulgare"],"ingredient_id":"04ee4514559","chem_id":null}
 {"name":"Rosa centifolia","function":["Moisturizer"],"acne":null,"irritant":null,"safety":[1],"synonym":["Cabbage rose","Rosa centifolia","Provence rose"],"ingredient_id":"3d265c6417","chem_id":null}
 {"name":"Echinacea Angustifolia Extract","function":["Moisturizer","Anti-inflammatory"],"acne":null,"irritant":null,"safety":[1],"synonym":["Echinacea Angustifolia Extract"],"ingredient_id":"c496b316071","chem_id":null}
-{"name":"AHA","function":["Exfoliator","Whitening"],"acne":null,"irritant":null,"safety":null,"synonym":["\u03b1-Hydroxy Acid","AHA","Fruit Acid","Alpha Hydroxy Acid"],"ingredient_id":"c4f8fb825","chem_id":"#query=AHA&input_type=smiles"}
+{"name":"AHA","function":["Exfoliator","Whitening"],"acne":null,"irritant":null,"safety":null,"synonym":["\u03b1-Hydroxy Acid","AHA","Fruit Acid","Alpha Hydroxy Acid"],"ingredient_id":"c4f8fb825","chem_id":"1990"}
 {"name":"Carthamus Tinctorius Flower Extract","function":["Plant extract"],"acne":null,"irritant":null,"safety":[1],"synonym":["Safflower Flower Extract","Carthamus Tinctorius Flower Extract"],"ingredient_id":"5fd94d14415","chem_id":null}
 {"name":"Panax Ginseng Flower Extract","function":[],"acne":null,"irritant":null,"safety":[1],"synonym":["Panax Ginseng Flower Extract"],"ingredient_id":"nm6661335827158521338","chem_id":null}
 {"name":"Cinnamomum Camphora Bark Oil","function":["Masking","Tonic","Skin Conditioning"],"acne":null,"irritant":null,"safety":null,"synonym":["Camphor Bark Oil","Cinnamomum Camphora Bark Oil"],"ingredient_id":"27b61b19774","chem_id":null}
@@ -2949,7 +2949,7 @@
 {"name":"Indian Gooseberry Extract","function":[],"acne":null,"irritant":null,"safety":[1],"synonym":["Indian Gooseberry Extract"],"ingredient_id":"nm3524361344563370020","chem_id":null}
 {"name":"Epilobium angustifolium","function":[],"acne":null,"irritant":null,"safety":null,"synonym":["Epilobium angustifolium","Fireweed"],"ingredient_id":"386dd110571","chem_id":null}
 {"name":"Willow Herb","function":["Anti-inflammatory","Astringent"],"acne":null,"irritant":null,"safety":null,"synonym":["Willowherb","Willow Herb","Epilobium"],"ingredient_id":"dae86c389","chem_id":null}
-{"name":"Carbon","function":["Pigment"],"acne":null,"irritant":null,"safety":null,"synonym":["Carbon"],"ingredient_id":"69baf515346","chem_id":"#query=Carbon&input_type=smiles"}
+{"name":"Carbon","function":["Pigment"],"acne":null,"irritant":null,"safety":null,"synonym":["Carbon"],"ingredient_id":"69baf515346","chem_id":"5462310"}
 {"name":"Nigella Sativa Seed Extract","function":["Fragrance","Plant extract"],"acne":null,"irritant":null,"safety":null,"synonym":["Black Caraway Seed Extract","Nigella Sativa Seed Extract"],"ingredient_id":"1aef0314537","chem_id":null}
 {"name":"Citrus Paradisi","function":["Antioxidant"],"acne":null,"irritant":null,"safety":[1],"synonym":["Citrus Grandis","Citrus Paradisi","Citrus paradisi Macfadyen","Grapefruit"],"ingredient_id":"3c3f66172","chem_id":null}
 {"name":"Eugenia caryophyllus","function":["Fragrance"],"acne":null,"irritant":null,"safety":[1],"synonym":["Syzygium aromaticum","Eugenia caryophyllus","Clove"],"ingredient_id":"3f4ce5734","chem_id":null}
@@ -3634,7 +3634,7 @@
 {"name":"Lactobacillus Ferment Lysate Filtrate","function":["Skin Conditioning"],"acne":null,"irritant":null,"safety":null,"synonym":["Lactobacillus Ferment Lysate Filtrate"],"ingredient_id":"2bcd1914453","chem_id":null}
 {"name":"Yucca Glauca Root Extract","function":["Skin Protecting"],"acne":null,"irritant":null,"safety":[1],"synonym":["Yucca Glauca Root Extract"],"ingredient_id":"37d43d19465","chem_id":null}
 {"name":"Pistacia lentiscus","function":["Fragrance"],"acne":null,"irritant":null,"safety":null,"synonym":["Mastic Tree","Lentisco","Mastic","Pistacia lentiscus"],"ingredient_id":"6647075636","chem_id":null}
-{"name":"RNA","function":["Emollient"],"acne":null,"irritant":null,"safety":[1],"synonym":["Ribonucleic Acid","RNA"],"ingredient_id":"df09a22556","chem_id":"#query=RNA&input_type=smiles"}
+{"name":"RNA","function":["Emollient"],"acne":null,"irritant":null,"safety":[1],"synonym":["Ribonucleic Acid","RNA"],"ingredient_id":"df09a22556","chem_id":null}
 {"name":"Oligopeptide-5","function":[],"acne":null,"irritant":null,"safety":[1],"synonym":["Oligopeptide-5"],"ingredient_id":"ba668710910","chem_id":null}
 {"name":"Pollen extract","function":["Plant extract"],"acne":null,"irritant":null,"safety":[1],"synonym":["Pollen","Pollen extract"],"ingredient_id":"ec32d32297","chem_id":null}
 {"name":"Magnesium hydroxide","function":["Absorbent","Buffering agent"],"acne":null,"irritant":null,"safety":[1],"synonym":["Magnesium hydroxide"],"ingredient_id":"369e901914","chem_id":"73981"}
@@ -4100,7 +4100,7 @@
 {"name":"Aminomethyl propanediol","function":["Buffering agent"],"acne":null,"irritant":null,"safety":[1],"synonym":["Aminomethyl propanediol"],"ingredient_id":"faf04b1288","chem_id":"1531"}
 {"name":"Stevia Rebaudiana Leaf Extract","function":[],"acne":null,"irritant":null,"safety":null,"synonym":["Stevia Rebaudiana Leaf Extract"],"ingredient_id":"nm6673811857149372742","chem_id":null}
 {"name":"Portulaca Pilosa Extract","function":["Skin Conditioning"],"acne":null,"irritant":null,"safety":null,"synonym":["Portulaca Pilosa Extract"],"ingredient_id":"42665720769","chem_id":null}
-{"name":"Capsaicin","function":["Masking","Skin Conditioning"],"acne":null,"irritant":null,"safety":[1],"synonym":["Capsaicin"],"ingredient_id":"17034615332","chem_id":"#query=Capsaicin&input_type=smiles"}
+{"name":"Capsaicin","function":["Masking","Skin Conditioning"],"acne":null,"irritant":null,"safety":[1],"synonym":["Capsaicin"],"ingredient_id":"17034615332","chem_id":"1548943"}
 {"name":"Neopentyl glycol diisostearate","function":["Emulsifier"],"acne":null,"irritant":null,"safety":[1],"synonym":["Neopentyl glycol diisostearate"],"ingredient_id":"9b29428360","chem_id":"10282874"}
 {"name":"Cola nitida","function":["Plant extract"],"acne":null,"irritant":null,"safety":null,"synonym":["Cola nitida"],"ingredient_id":"6fc2aa7186","chem_id":null}
 {"name":"Glycyrrhizic acid","function":["Moisturizer","Anti-inflammatory"],"acne":null,"irritant":null,"safety":[1],"synonym":["Glycyrrhizinic acid","Glycyrrhizin","Glycyrrhizic acid"],"ingredient_id":"5c7d6f1708","chem_id":"14982"}
