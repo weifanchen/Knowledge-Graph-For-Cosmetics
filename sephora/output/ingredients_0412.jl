@@ -1,6 +1,6 @@
 {"name":"Water","function":["Solvent"],"acne":null,"irritant":null,"safety":[1],"synonym":["Aqua","H2O","Eau","Aqueous","Acqua","Water"],"ingredient_id":"90172810251","chem_id":"962"}
 {"name":"Dicaprylyl Carbonate","function":["Emollient"],"acne":null,"irritant":null,"safety":[1],"synonym":["CETIOL CC","Dicaprylyl Carbonate"],"ingredient_id":"90f3e610236","chem_id":"9904000"}
-{"name":"Glycerin","function":["Solvent","Moisturizer"],"acne":[0],"irritant":[0],"safety":[2],"synonym":["Glycerine","Glycerin","Pflanzliches Glycerin","Glycerol"],"ingredient_id":"205eb9166","chem_id":null}
+{"name":"Glycerin","function":["Solvent","Moisturizer","Humectant"],"acne":[0],"irritant":[0],"safety":[2],"synonym":["Glycerine","Glycerin","Pflanzliches Glycerin","Glycerol"],"ingredient_id":"205eb9166","chem_id":null}
 {"name":"Cetearyl Alcohol","function":["Surfactant","Viscosity Control","Emulsifier"],"acne":[2],"irritant":[2],"safety":[1],"synonym":["Cetyl Stearyl Alcohol","Cetostearyl Alcohol","Cetearyl Alcohol"],"ingredient_id":"f83898102","chem_id":"62238"}
 {"name":"Cetearyl Olivate","function":["Emulsifier"],"acne":null,"irritant":null,"safety":[1],"synonym":["OLIVEM 1000","OLIVEM 900","Cetearyl Olivate","Cetearyl Olivate \/ Sorbitan Olivate","Cetearyl Olivate and Sorbitan Olivate","Sorbitan Olivate"],"ingredient_id":"b898356384","chem_id":null}
 {"name":"Sclerocarya Birrea Seed Oil","function":["Moisturizer"],"acne":null,"irritant":null,"safety":[1],"synonym":["Sclerocarya Birrea Seed Oil"],"ingredient_id":"41831414303","chem_id":null}
@@ -1602,7 +1602,6 @@
 {"name":"Glyceryl dilaurate","function":["Emollient","Emulsifier"],"acne":null,"irritant":null,"safety":[1],"synonym":["Glyceryl dilaurate"],"ingredient_id":"f2191b1673","chem_id":"33979"}
 {"name":"Alcaligenes Polysaccharides","function":["Viscosity Control","Moisturizer"],"acne":null,"irritant":null,"safety":[1],"synonym":["Alcaligenes Polysaccharides"],"ingredient_id":"16a6d510451","chem_id":null}
 {"name":"Hydroxylated lecithin","function":["Emulsifier"],"acne":null,"irritant":null,"safety":[1],"synonym":["Hydroxylated lecithin"],"ingredient_id":"1ca3ce1791","chem_id":null}
-{"name":"Humectant","function":[],"acne":null,"irritant":null,"safety":null,"synonym":["Moisturizing","Moisturizer","Moisturiser","Humectant"],"ingredient_id":"9abec22855","chem_id":null}
 {"name":"Propanediol Dicaprylate","function":["Solvent","Emollient"],"acne":null,"irritant":null,"safety":[1],"synonym":["Propanediol Dicaprylate"],"ingredient_id":"fe3cad20672","chem_id":"3085110"}
 {"name":"C20-22 Alkyl Phosphate","function":["Surfactant","Emulsifier"],"acne":null,"irritant":null,"safety":[1],"synonym":["C20-22 Alkyl Phosphate"],"ingredient_id":"b06f1d13464","chem_id":null}
 {"name":"Butyl Avocadate","function":["Skin Conditioning"],"acne":null,"irritant":null,"safety":[1],"synonym":["Butyl Avocadate"],"ingredient_id":"84fe6d12877","chem_id":null}
