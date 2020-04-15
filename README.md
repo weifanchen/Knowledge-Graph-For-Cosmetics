@@ -1,10 +1,5 @@
 # INF558_project
 
-待解決
-產品重複
-產品成分空白
-RDF ->
-
 ## Outputs
  1. The original product list: **sephora_skincare_product.jl**
     * #2386
@@ -25,6 +20,9 @@ RDF ->
     * 78 products have empty ingredient list
 
  4. **ingredients.jl**
+
+ 5. 
+
 
 ## Reference 
 - [THESE ARE THE SKINCARE INGREDIENTS YOU SHOULD NEVER MIX](https://www.beautybay.com/edited/skincare-ingredients-you-should-never-mix/)
