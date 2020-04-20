@@ -63,21 +63,19 @@ def subquery(param):
     results = sparql.query().convert()
     return results
 
+def main_query_name(name):
+    query = """
+    SELECT DISTINCT ?pid ?name
+    WHERE{{
+        ?product a myns:skincare_product;
+            myns:product_name ?name;
+        
+        FILTER (?name)
+        
+    }}
+    """
 
-  
-# ?ingredient a myns:Compound;
-#             myns:hasAttribute ?attr;
-#             #myns:hasAttribute myns:Fragrance.
-# #FILTER  EXISTS {?ingredient myns:acne ?acne_index.}
-
-# #OPTIONAL{?ingredient myns:acne ?acne_index.}
-# #FILTER(!BOUND(?acne_index)).
-# #	?acne_index>4 || 
-# #OPTIONAL{?ingredient myns:acne ?acne_index. FILTER (?acne_index>4)}
-# FILTER NOT EXISTS {?ingredient myns:irritant ?irritant_index . || ?ingredient myns:hasAttribute myns:Irritant .} 
-# #FILTER (?acne_index>4)
-
-def main_query(param):
+def main_query_filter(param):
     query = """
     SELECT DISTINCT ?pid ?name
     WHERE{{
@@ -104,8 +102,7 @@ def main_query(param):
     if param['safety']: 
         query +="""OPTIONAL{{?product myns:hasIngredient [ myns:safety ?safety_index].}}
   		FILTER (?safety_index<={safety} || !BOUND(?safety_index))"""
-
-    
+   
     query += """}}"""
     print('---------')
     print(query)
@@ -115,8 +112,12 @@ def main_query(param):
     results = sparql.query().convert()
     return results
 
+
 sparql = SPARQLWrapper("http://localhost:3030/ds/query")
 
+# 酒精
+# 變性酒精 alcohol denat.
+# alcohol中总分有两大类：低分子类对皮肤有害，包括ethyl aocohol（乙醇），methanol（甲醇）， isopropyl alcohol（异丙醇），benzyl alcohol（苯甲醇）；高分子类对皮肤有益，包括cetyl alcohol （鲸蜡醇）, stearyl alcohol（硬脂醇）, cetearyl alcohol（棕榈醇）, lanolin alcohol（羊毛脂醇）。
 param = {
     'brand': "CLINIQUE",
     'minicategory':False,
@@ -125,9 +126,10 @@ param = {
     'irrative':False, #
     'safety':2,
     'fragrance':False,
-    'preservatives':False
+    'preservatives':False,
+    'alcohol':False # "ingredient_id": "fe88f2158"
 }
-result = main_query(param)
+result = main_query_filter(param)
 temp = result["results"]["bindings"]
     
 with open('./output/query_result.json', 'w') as fp:
