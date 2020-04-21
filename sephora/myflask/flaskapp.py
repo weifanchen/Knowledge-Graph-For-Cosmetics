@@ -1,18 +1,52 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from CosQuery import queryFormula
+from SPARQLWrapper import SPARQLWrapper, JSON
+from Queries import queryByAttributes, queryByName
+from werkzeug.datastructures import ImmutableMultiDict
+ 
 # print_hello()
 
 app = Flask(__name__)
+sparql = SPARQLWrapper("http://localhost:3030/ds/query")
 CORS(app)
 
 @app.route('/', methods=['GET'])
 def ping_pong():
-    res = request.args
-    print(res['type'])
-    # return jsonify(queryFormula())
-    return jsonify('Hello from Flask!')
-
+    #res = ImmutableMultiDict([('type', 'Basic'), ('product', 'Protini™ Polypeptide Moisturizer')])
+    res = ImmutableMultiDict([('type', 'Advanced'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives')])    #res = request.args
+    if res['type']=='Basic':
+        result = queryByName(res['product'])
+        return result
+    elif res['type']=='Advanced':
+        print(res['fda[]'])
+        # param = {
+        #     'brand': False,
+        #     'minicategory':False,
+        #     'price':[100,500],
+        #     'acne':False,
+        #     'irrative':2, #
+        #     'safety':2,
+        #     'fragrance':False,
+        #     'preservatives':False,
+        #     'alcohol':False # "ingredient_id": "fe88f2158"
+        # }
+        param = {
+            'minicategory' :str(res.getlist('categories[]'))[1:-1], # empty = []
+            'brand': res.get('brand',False),
+            'price':[100,500],
+            'acne' : res.get('acne',False),
+            'irrative': res.get('irri',False),
+            'Fragrance':False,
+            'Preservatives':False,
+            'Alcohol':False 
+        } #default
+        for fda in res.getlist('fda[]'):
+            param[fda] = True
+        print(param)
+        result = queryByAttributes(param)
+        return result
+    else:
+        return jsonify('Hello from Flask!')
 
 # Basic Search arguments example
 # res = ImmutableMultiDict([('type', 'Basic'), ('product', 'Protini™ Moisturizer')])
