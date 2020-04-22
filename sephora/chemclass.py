@@ -5,14 +5,14 @@ import json
 import re
 import math
 
-ingredient = pd.read_json('ingredients_0412.jl', lines=True)
+ingredient = pd.read_json('./output/ingredients.jl', lines=True)
 
-with open('compound_0412_FDA.jl') as fp:
+with open('./output/compounds.jl') as fp:
   compound = [json.loads(line) for line in fp.read().split('\n') if line!='']
 
 compound_dict = {str(int(line['chem_id'])): line for line in compound}
 
-compound = pd.read_json('compound_0412_FDA.jl', lines=True)
+compound = pd.read_json('./output/compounds.jl', lines=True)
 
 
 # chemclass = {'natural rubber': ['latex'], 
@@ -22,6 +22,7 @@ compound = pd.read_json('compound_0412_FDA.jl', lines=True)
 #                            'Hydroxycitronellal', 'Hydroxyisohexyl 3-cyclohexene carboxaldehyde (HICC), (also known as Lyral)',
 #                            'Isoeugenol', 'Lilial', 'd-Limonene', 'Linalool', 'Methyl 2-octynoate', 'g-Methylionone', 'Oak moss extract', 'Tree moss extract'], 
 #              'preservative': ['Methylisothiazolinone', 'Methylchloroisothiazolinone', 'Bronopol', 'Diazolidinyl urea', 'DMDM hydantoin', 'Imidazolidinyl urea', 'Sodium hydroxymethylglycinate'], 
+#              'alcoholic': ['']
 #              'dyes': ['p-phenylenediamine', 'Coal-tar'], 
 #              'metal': ['Gold', 'Nickel'], 
 #              'vitaminC': ['vitamin c'], 
@@ -40,7 +41,7 @@ compound = pd.read_json('compound_0412_FDA.jl', lines=True)
 # buildingggg GRAPH
 
 foaf = Namespace('http://xmlns.com/foaf/0.1/')
-schema = Namespace('https://schema.org/')
+schema = Namespace('http://schema.org/')
 owl = Namespace('http://www.w3.org/2002/07/owl#')
 myns = Namespace('http://inf558.org/chemcosmetic/')
 
@@ -135,6 +136,12 @@ kgraph.add((safety, RDFS.label, Literal('safety')))
 kgraph.add((safety, schema['domainIncludes'], myns['Compound']))
 kgraph.add((safety, schema['rangeIncludes'], XSD.integer))
 
+safety = URIRef(myns['conflictWith'])
+kgraph.add((safety, RDF.type, schema['Property']))
+kgraph.add((safety, RDFS.label, Literal('conflict with')))
+kgraph.add((safety, schema['domainIncludes'], myns['ChemGroup']))
+kgraph.add((safety, schema['rangeIncludes'], myns['ChemGroup']))
+
 # build Chemical Group
 chemclass = {'VitaminC': ['vitamin c'], 
              'Glycolic': ['glycolic acid'],
@@ -146,12 +153,30 @@ chemclass = {'VitaminC': ['vitamin c'],
              'Salicylic': ['salicylic acid'], 
              'Retinol': ['retinol', 'vitamin a', 'retinoic acid'], 
              'Niacinamide': ['niacinamide'], 
-             'Benzoic': ['benzoic acid']}
+             'Benzoic': ['benzoic acid'],
+             'Alcoholic':['ethyl alcohol','methanol','isopropyl alcohol','benzyl alcohol','alcohol denat']}
+
+# 雙向/單向?
+
+kgraph.add((myns['VitaminC'], myns['conflictWith'], myns['Lactic']))
+kgraph.add((myns['VitaminC'], myns['conflictWith'], myns['Salicylic']))
+kgraph.add((myns['VitaminC'], myns['conflictWith'], myns['Glycolic']))
+
+kgraph.add((myns['Retinol'], myns['conflictWith'], myns['Lactic']))
+kgraph.add((myns['Retinol'], myns['conflictWith'], myns['Salicylic']))
+kgraph.add((myns['Retinol'], myns['conflictWith'], myns['Glycolic']))
+kgraph.add((myns['Retinol'], myns['conflictWith'], myns['VitaminC']))
+
+kgraph.add((myns['Glycolic'], myns['conflictWith'], myns['Salicylic']))
+kgraph.add((myns['Niacinamide'], myns['conflictWith'], myns['VitaminC']))
+
+
 
 for g in chemclass.keys():
     gURI = URIRef(myns[g])
     kgraph.add((gURI, RDF.type, myns['ChemGroup']))
     kgraph.add((gURI, RDFS['label'], Literal(g)))
+
 
 # build Safety
 safetySet = set()
@@ -238,7 +263,7 @@ for index, row in ingredient.iterrows():
                 if len(matching) > 0:
                     kgraph.add((this, myns['groupOf'], myns[g]))
 
-kgraph.serialize('compound_0413.ttl', format="turtle")
+kgraph.serialize('./output/RDF_compounds.ttl', format="turtle")
 
 # idss = []
 # for i in chemchem.chem_id:
@@ -273,7 +298,5 @@ kgraph.serialize('compound_0413.ttl', format="turtle")
 #     compinfo = {'chem_id': compid, 'chem_url': comp, 'safety': safety, 'formula': formula, 'synonyms':list(sysSet)}            
 #     compfile.write(json.dumps(compinfo) + '\n')
 #     compfile.flush()
-
-
 
 

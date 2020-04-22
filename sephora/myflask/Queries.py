@@ -77,7 +77,6 @@ def queryByAttributes(param):
   		FILTER (?price>={price[0]} && ?price<={price[1]})
     """
     
-    # T/F 
     query = prefixes + query
     if param['minicategory']: query +="""FILTER (?minicategory IN ({minicategory}))"""
     if param['brand']: query += """FILTER EXISTS {{?brand rdfs:label "{brand}" }}"""
