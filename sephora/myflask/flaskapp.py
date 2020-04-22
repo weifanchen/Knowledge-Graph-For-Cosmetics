@@ -18,18 +18,6 @@ def ping_pong():
         result = queryByName(res['product'])
         return result
     elif res['type']=='Advanced':
-        print(res['fda[]'])
-        # param = {
-        #     'brand': False,
-        #     'minicategory':False,
-        #     'price':[100,500],
-        #     'acne':False,
-        #     'irrative':2, #
-        #     'safety':2,
-        #     'fragrance':False,
-        #     'preservatives':False,
-        #     'alcohol':False # "ingredient_id": "fe88f2158"
-        # }
         param = {
             'minicategory' :str(res.getlist('categories[]'))[1:-1], # empty = []
             'brand': res.get('brand',False),
