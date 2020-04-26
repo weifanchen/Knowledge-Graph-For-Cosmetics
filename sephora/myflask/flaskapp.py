@@ -1,24 +1,15 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from SPARQLWrapper import SPARQLWrapper, JSON
-from Queries import queryByAttributes, queryByName
+from Queries import queryByAttributes, queryByName, queryFindConflictedGroup, queryFindFitProduct
 from werkzeug.datastructures import ImmutableMultiDict
  
-# print_hello()
-
 app = Flask(__name__)
 sparql = SPARQLWrapper("http://localhost:3030/ds/query")
 CORS(app)
 
-@app.route('/', methods=['GET'])
-def ping_pong():
-    #res = ImmutableMultiDict([('type', 'Basic'), ('product', 'Protini™ Polypeptide Moisturizer')])
-    res = ImmutableMultiDict([('type', 'Advanced'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives')])    #res = request.args
-    if res['type']=='Basic':
-        result = queryByName(res['product'])
-        return result
-    elif res['type']=='Advanced':
-        param = {
+def Advanced_param(res):
+    param = {
             'minicategory' :str(res.getlist('categories[]'))[1:-1], # empty = []
             'brand': res.get('brand',False),
             'price':[100,500],
@@ -26,13 +17,42 @@ def ping_pong():
             'irrative': res.get('irri',False),
             'Fragrance':False,
             'Preservatives':False,
-            'Alcohol':False 
+            'Alcohol':False ,
+            'function': str(res.getlist('function[]'))[1:-1]
         } #default
-        for fda in res.getlist('fda[]'):
-            param[fda] = True
-        print(param)
-        result = queryByAttributes(param)
-        return result
+    for fda in res.getlist('fda[]'):
+        param[fda] = True
+    return param
+
+
+@app.route('/', methods=['GET'])
+def ping_pong():
+    #res = ImmutableMultiDict([('type', 'Basic'), ('product', 'Protini™ Polypeptide Moisturizer')])
+    #res = ImmutableMultiDict([('type', 'Advanced'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives'),('function[]','Emollient'),('function[]','Whitening')])    #res = request.args
+    res = ImmutableMultiDict([('type', 'Collection'),('collections[]', 'The True Cream Aqua Bomb'),('collections[]', 'Protini™ Polypeptide Moisturizer'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives')])
+    
+    if res['type']=='Basic':
+        result = queryByName(res['product'])
+        return jsonify(result)
+
+    elif res['type']=='Advanced':
+        result = queryByAttributes(Advanced_param(res))
+        print([r['pid']['value'] for r in result])
+        return jsonify(result)
+    elif res['type']=='Collection':
+        result = 'No result'
+        productsFitAttributes = queryByAttributes(Advanced_param(res))
+        if len(productsFitAttributes)>0:
+            pids = set([int(p['pid']['value']) for p in productsFitAttributes])
+            pids = str(pids)[1:-1]
+            collections = str(res.getlist('collections[]'))[1:-1]
+            conflictedgroup = queryFindConflictedGroup(collections)
+            if conflictedgroup:
+                print('ready to queryFindFitProduct')
+                result=queryFindFitProduct(pids,conflictedgroup)
+        return jsonify(result)
+
+
     else:
         return jsonify('Hello from Flask!')
 
@@ -48,6 +68,22 @@ def ping_pong():
 # def test():
 #     data = request.get_json(silent=True)
 #     print(data)
+
+'''
+function_list = [myns:HairConditioning,myns:HairConditioning,myns:SkinConditioning, myns:HairFixative, myns:Humectant, myns:Moisturizer, myns:Depilatory, myns:anti-aging, myns:Whitening
+,myns:Anti-inflammatory,myns:NailConditioning, myns:OralCare	
+myns:Antimicrobial
+myns:Antidandruff
+myns:Cellregeneration
+myns:Exfoliator
+myns:Antioxidant
+myns:Sunscreen
+myns:Anti-allergic
+myns:Deodorant
+myns:Smoothing
+myns:Emollient
+]
+'''
 
 if __name__ == '__main__':
     app.run(debug = True)
