@@ -27,9 +27,10 @@ def Advanced_param(res):
 
 @app.route('/', methods=['GET'])
 def ping_pong():
+    res = ImmutableMultiDict([('type', 'Basic'), ('product', '2180941')])
     #res = ImmutableMultiDict([('type', 'Basic'), ('product', 'Protini™ Polypeptide Moisturizer')])
     #res = ImmutableMultiDict([('type', 'Advanced'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives'),('function[]','Emollient'),('function[]','Whitening')])    #res = request.args
-    res = ImmutableMultiDict([('type', 'Collection'),('collections[]', 'The True Cream Aqua Bomb'),('collections[]', 'Protini™ Polypeptide Moisturizer'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives')])
+    #res = ImmutableMultiDict([('type', 'Collection'),('collections[]', 'The True Cream Aqua Bomb'),('collections[]', 'Protini™ Polypeptide Moisturizer'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives')])
     
     if res['type']=='Basic':
         result = queryByName(res['product'])

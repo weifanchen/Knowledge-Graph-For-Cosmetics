@@ -14,16 +14,16 @@ prefixes ="""
 
         """
 
-def queryByName(name):
-    sparql = SPARQLWrapper("http://localhost:3030/ds/query")
+def queryByName(pid):
+    #sparql = SPARQLWrapper("http://localhost:3030/ds/query")
     query = """
-    SELECT DISTINCT ?product ?pid ?url ?minicategory ?brand ?love ?price ?size
+    SELECT DISTINCT ?product ?name ?url ?minicategory ?brand ?love ?price ?size
     WHERE{{
         ?product a myns:skincare_product;
-            myns:product_id ?pid;
+            myns:product_id {};
             myns:product_url ?url;
             myns:minicategory [rdfs:label ?minicategory];
-            myns:product_name {};
+            myns:product_name ?name;
             myns:brand ?brand;
             myns:numOfLoves ?love;
             myns:size_price_pair ?spp;
@@ -33,7 +33,8 @@ def queryByName(name):
             myns:hasSize ?size.        
     }}
     """
-    sparql.setQuery(prefixes + query.format(name))
+    sparql.setQuery(prefixes + query.format(pid))
+    print(query)
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
     return results['results']['bindings']
@@ -87,7 +88,21 @@ def queryByAttributes(param):
 
 sparql = SPARQLWrapper("http://localhost:3030/ds/query")
 
-
+def queryIfConflicted(products):
+    # check if a new product is conflict with the existing products
+    query = """
+        SELECT DISTINCT * WHERE{
+  	  ?product1 a myns:skincare_product;
+               myns:hasIngredient [myns:groupOf ?g1];
+               myns:product_id 2058402  .
+  
+      ?product2 a myns:skincare_product;
+  			   myns:hasIngredient [myns:groupOf ?g2];
+  				myns:product_id 2311439 .
+     FILTER EXISTS{?g1 myns:conflictWith ?g2} # with result = conflict
+    	}"""
+    # if result : conflict
+    
 def queryFindConflictedGroup(collections):
     # find conflicted group for the collections
     query = """
