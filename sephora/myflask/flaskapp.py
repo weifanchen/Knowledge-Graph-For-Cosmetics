@@ -28,8 +28,8 @@ def Advanced_param(res):
 
 @app.route('/', methods=['GET'])
 def ping_pong():
-    #res = ImmutableMultiDict([('type', 'Basic'), ('product', '1932920')])
-    res = ImmutableMultiDict([('type', 'Advanced'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives'), ('price[]', '0'), ('price[]', '280'),('function[]','Emollient'),('function[]','Whitening')])    #res = request.args
+    res = ImmutableMultiDict([('type', 'Basic'), ('product', '1932920')])
+    #res = ImmutableMultiDict([('type', 'Advanced'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives'), ('price[]', '0'), ('price[]', '280'),('function[]','Emollient'),('function[]','Whitening')])    #res = request.args
     #res = ImmutableMultiDict([('type', 'Collection'),('collections[]', 'The True Cream Aqua Bomb'),('collections[]', 'Protini™ Polypeptide Moisturizer'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives')])
     #res = ImmutableMultiDict([('type', 'Collection'),('collections[]', 2005023),('collections[]', 2025633), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives')])
 

@@ -31,18 +31,16 @@ def ResultFormat_basic(results,pid):
         ans['size'] = float(results['results']['bindings'][0]['minsize']['value'])
         ans['price'] = float(results['results']['bindings'][0]['minPrice']['value'])
         ing_list = []
-        ing_set = set()
+        #ing_set = set()
         for r in results['results']['bindings']:
-            if r['ingredient'] not in ing_set:
-                ing_dict=defaultdict(list)
-                ing_dict['name'] = r['ingredient_name']['value']
-                ing_dict['acne'] = r['acne_index']['value'] if 'acne_index' in r.keys() else None
-                ing_dict['irritant'] = r['irritant_index']['value'] if 'irritant_index' in r.keys() else None
-                ing_dict['safety'] = r['safety_index']['value'] if 'safety_index' in r.keys() else None
-                ing_dict['function'].append(r['function']['value'])
-                ing_list.append(ing_dict)
-            else:
-                pass
+            #if r['ingredient'] not in ing_set:
+            ing_dict=defaultdict(list)
+            ing_dict['name'] = r['ingredient_name']['value']
+            ing_dict['acne'] = r['acne_index']['value'] if 'acne_index' in r.keys() else None
+            ing_dict['irritant'] = r['irritant_index']['value'] if 'irritant_index' in r.keys() else None
+            ing_dict['safety'] = r['safety_index']['value'] if 'safety_index' in r.keys() else None
+            ing_dict['function'].append(r['function']['value'])
+            ing_list.append(ing_dict)
         ans['ingredients'] = ing_list
         return ans
     else:
