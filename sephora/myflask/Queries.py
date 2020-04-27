@@ -1,6 +1,11 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
 import json
 import re
+from collections import defaultdict
+
+
+sparql = SPARQLWrapper("http://localhost:3030/ds/query")
+
 
 prefixes ="""
         prefix foaf: <http://xmlns.com/foaf/0.1/> 
@@ -13,28 +18,102 @@ prefixes ="""
         prefix xsd: <http://www.w3.org/2001/XMLSchema#> 
 
         """
+def ResultFormat_basic(results,pid):
+    ans = dict()
+    if results['results']['bindings']:
+        ans['product_id'] = pid
+        ans['product_name'] = results['results']['bindings'][0]['name']['value']
+        ans['brand'] = results['results']['bindings'][0]['brand']['value']
+        ans['category'] = results['results']['bindings'][0]['category']['value']
+        ans['subcategory'] = results['results']['bindings'][0]['subcategory']['value']
+        ans['minicategory'] = results['results']['bindings'][0]['minicategory']['value']
+        ans['size'] = float(results['results']['bindings'][0]['minsize']['value'])
+        ans['price'] = float(results['results']['bindings'][0]['minPrice']['value'])
+        ing_list = []
+        for r in results['results']['bindings']:
+            ing_dict=defaultdict(lambda: None)
+            ing_dict['name'] = r['ingredient_name']['value']
+            ing_dict['acne'] = r['acne_index']['value'] if 'acne_index' in r.keys() else None
+            ing_dict['irritant'] = r['irritant_index']['value'] if 'irritant_index' in r.keys() else None
+            ing_dict['safety'] = r['safety_index']['value'] if 'safety_index' in r.keys() else None
+            ing_list.append(ing_dict)
+        ans['ingredients'] = ing_list
+        return ans
+    else:
+        return None
+
+def ResultFormat_Advance(results):
+    ans_list = list()
+    if results['results']['bindings']:
+        for r in results['results']['bindings']:
+            ans = dict()
+            ans['product_id'] = r['pid']['value']
+            ans['product_name'] = r['name']['value']
+            ans['url'] = r['url']['value']
+            ans_list.append(ans)
+        return ans_list
+    else:
+        return None
 
 def queryByName(pid):
-    #sparql = SPARQLWrapper("http://localhost:3030/ds/query")
+    query ="""
+        SELECT DISTINCT ?product ?name ?url ?category ?subcategory ?minicategory ?brand ?love ?ingredient_name ?function ?safety_index ?acne_index ?irritant_index (MIN(?price) AS ?minPrice) (MIN(?size) AS ?minsize)
+        WHERE{{
+            ?product a myns:skincare_product;
+                myns:product_id {} ;
+                myns:product_url ?url;
+                myns:category [rdfs:label ?category];
+                myns:subcategory [rdfs:label ?subcategory];
+                myns:minicategory [rdfs:label ?minicategory];
+                myns:product_name ?name;
+                myns:brand [rdfs:label ?brand];
+                myns:numOfLoves ?love;
+                myns:size_price_pair ?spp;
+                myns:hasIngredient ?ingredient.
+            ?ingredient a myns:Compound ;
+                foaf:name ?ingredient_name;
+                OPTIONAL{{?ingredient myns:hasFunction [rdfs:label ?function]}}
+                OPTIONAL{{?ingredient myns:safety ?safety_index;}}
+                OPTIONAL{{?ingredient myns:acne ?acne_index;}}
+                OPTIONAL{{?ingredient myns:irritant ?irritant_index;}}
+            ?minspp myns:fromProduct ?product;
+                myns:hasPrice ?price;
+                myns:hasSize ?size.    
+        
+    }}GROUP BY ?product ?name ?url ?category ?subcategory ?minicategory ?brand ?love ?ingredient_name ?function ?safety_index ?acne_index ?irritant_index       
+    """
+    sparql.setQuery(prefixes + query.format(pid))
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+    return ResultFormat_basic(results,pid)
+
+def queryByName_old(pid):
     query = """
-    SELECT DISTINCT ?product ?name ?url ?minicategory ?brand ?love ?price ?size
+    SELECT DISTINCT ?product ?name ?url ?category ?subcategory ?minicategory ?brand ?love #(MIN(?price) AS ?minPirce) (MIN(?size) AS ?minSize)
     WHERE{{
         ?product a myns:skincare_product;
             myns:product_id {};
             myns:product_url ?url;
+            myns:category [rdfs:label ?category];
+            myns:subcategory [rdfs:label ?subcategory];
             myns:minicategory [rdfs:label ?minicategory];
             myns:product_name ?name;
             myns:brand ?brand;
             myns:numOfLoves ?love;
             myns:size_price_pair ?spp;
             myns:hasIngredient ?ingredient.
+        ?ingredient a myns:Compound ;
+            myns:hasFunction ?function ;
+            myns:safety ?safety_index; 
+            myns:acne ?acne_index;
+            myns:irritant ?irritant_index.
+
         ?spp myns:fromProduct ?product;
             myns:hasPrice ?price;
             myns:hasSize ?size.        
     }}
     """
     sparql.setQuery(prefixes + query.format(pid))
-    print(query)
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
     return results['results']['bindings']
@@ -42,17 +121,18 @@ def queryByName(pid):
 
 def queryByAttributes(param):
     query = """
-    SELECT DISTINCT ?product ?pid ?name ?url ?minicategory  ?brand ?love ?price ?size
+    SELECT DISTINCT ?product ?pid ?name ?url
     WHERE{{
         ?product a myns:skincare_product;
             myns:product_id ?pid;
             myns:product_url ?url;
             myns:minicategory [rdfs:label ?minicategory];
             myns:product_name ?name;
-            myns:brand ?brand;
+            myns:brand [rdfs:label ?brand];
             myns:numOfLoves ?love;
             myns:size_price_pair ?spp;
             myns:hasIngredient ?ingredient.
+        ?ingredient a myns:Compound.
         ?spp myns:fromProduct ?product;
             myns:hasPrice ?price;
             myns:hasSize ?size.
@@ -80,15 +160,17 @@ def queryByAttributes(param):
   	# 	FILTER (?safety_index<={safety} || !BOUND(?safety_index))"""
    
     query += """}}ORDER BY DESC(?love)"""
+    # print('--------------------')
+    # print(query.format(**param))
+    # print('--------------------')
     sparql.setQuery(prefixes + query.format(**param))
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
-    print(len(results['results']['bindings']))
-    return results['results']['bindings']
+    #print(len(results['results']['bindings']))
+    return ResultFormat_Advance(results)
 
-sparql = SPARQLWrapper("http://localhost:3030/ds/query")
 
-def queryIfConflicted(products):
+def queryIfProductsConflicted(products):
     # check if a new product is conflict with the existing products
     query = """
         SELECT DISTINCT * WHERE{
@@ -107,11 +189,10 @@ def queryFindConflictedGroup(collections):
     # find conflicted group for the collections
     query = """
     SELECT DISTINCT ?conflictedGroup WHERE{{
-      ?product_list myns:product_name ?name;
-                    myns:product_id ?product_ids;
-   			myns:hasIngredient ?ingredient.
+        ?product_list myns:product_id ?product_ids;
+   			          myns:hasIngredient ?ingredient.
      ?ingredient myns:groupOf [myns:conflictWith ?conflictedGroup].
-	FILTER (?name IN ({}))
+	FILTER (?product_ids IN ({}))
     	}}
     """
     query = prefixes + query
@@ -149,7 +230,7 @@ def queryFindFitProduct(pids,conflictedgroup):
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
     #print(len(results['results']['bindings']))
-    return results['results']['bindings']
+    return ResultFormat_Advance(results)
 
 
 

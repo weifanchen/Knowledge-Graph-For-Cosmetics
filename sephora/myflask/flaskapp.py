@@ -24,32 +24,32 @@ def Advanced_param(res):
         param[fda] = True
     return param
 
+    
 
 @app.route('/', methods=['GET'])
 def ping_pong():
-    res = ImmutableMultiDict([('type', 'Basic'), ('product', '2180941')])
-    #res = ImmutableMultiDict([('type', 'Basic'), ('product', 'Protini™ Polypeptide Moisturizer')])
+    #res = ImmutableMultiDict([('type', 'Basic'), ('product', '2019461')])
     #res = ImmutableMultiDict([('type', 'Advanced'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives'),('function[]','Emollient'),('function[]','Whitening')])    #res = request.args
     #res = ImmutableMultiDict([('type', 'Collection'),('collections[]', 'The True Cream Aqua Bomb'),('collections[]', 'Protini™ Polypeptide Moisturizer'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives')])
-    
+    res = ImmutableMultiDict([('type', 'Collection'),('collections[]', 2005023),('collections[]', 2025633), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives')])
+
     if res['type']=='Basic':
         result = queryByName(res['product'])
         return jsonify(result)
 
     elif res['type']=='Advanced':
         result = queryByAttributes(Advanced_param(res))
-        print([r['pid']['value'] for r in result])
         return jsonify(result)
     elif res['type']=='Collection':
         result = 'No result'
         productsFitAttributes = queryByAttributes(Advanced_param(res))
         if len(productsFitAttributes)>0:
-            pids = set([int(p['pid']['value']) for p in productsFitAttributes])
+            pids = set([int(p['product_id']) for p in productsFitAttributes])
             pids = str(pids)[1:-1]
             collections = str(res.getlist('collections[]'))[1:-1]
             conflictedgroup = queryFindConflictedGroup(collections)
             if conflictedgroup:
-                print('ready to queryFindFitProduct')
+                #print('ready to queryFindFitProduct')
                 result=queryFindFitProduct(pids,conflictedgroup)
         return jsonify(result)
 
