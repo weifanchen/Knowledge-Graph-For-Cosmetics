@@ -20,31 +20,36 @@ prefixes ="""
         """
 def ResultFormat_basic(results,pid):
     ans = dict()
-    if results['results']['bindings']:
+    rr = results['results']['bindings']
+    if rr:
         ans['product_id'] = pid
-        ans['product_name'] = results['results']['bindings'][0]['name']['value']
-        ans['url'] = results['results']['bindings'][0]['url']['value']
-        ans['brand'] = results['results']['bindings'][0]['brand']['value']
-        ans['category'] = results['results']['bindings'][0]['category']['value']
-        ans['subcategory'] = results['results']['bindings'][0]['subcategory']['value']
-        ans['minicategory'] = results['results']['bindings'][0]['minicategory']['value']
-        ans['size'] = float(results['results']['bindings'][0]['minsize']['value'])
-        ans['price'] = float(results['results']['bindings'][0]['minPrice']['value'])
+        ans['product_name'] = rr[0]['name']['value']
+        ans['url'] = rr[0]['url']['value']
+        ans['brand'] = rr[0]['brand']['value']
+        ans['category'] = rr[0]['category']['value']
+        ans['subcategory'] = rr[0]['subcategory']['value']
+        ans['minicategory'] = rr[0]['minicategory']['value']
+        ans['size'] = float(rr[0]['minsize']['value'])
+        ans['price'] = float(rr[0]['minPrice']['value'])
         ing_list = []
-        #ing_set = set()
-        for r in results['results']['bindings']:
-            #if r['ingredient'] not in ing_set:
-            ing_dict=defaultdict(list)
-            ing_dict['name'] = r['ingredient_name']['value']
-            ing_dict['acne'] = r['acne_index']['value'] if 'acne_index' in r.keys() else None
-            ing_dict['irritant'] = r['irritant_index']['value'] if 'irritant_index' in r.keys() else None
-            ing_dict['safety'] = r['safety_index']['value'] if 'safety_index' in r.keys() else None
-            ing_dict['function'].append(r['function']['value'])
-            ing_list.append(ing_dict)
+        list_key = []
+        for r in rr:
+            if r['ingredient_name']['value'] not in list_key:
+                ing_dict=defaultdict(list)
+                ing_dict['name'] = r['ingredient_name']['value']
+                ing_dict['acne'] = r['acne_index']['value'] if 'acne_index' in r.keys() else None
+                ing_dict['irritant'] = r['irritant_index']['value'] if 'irritant_index' in r.keys() else None
+                ing_dict['safety'] = r['safety_index']['value'] if 'safety_index' in r.keys() else None
+                ing_dict['function']= [r['function']['value']] if 'function' in r.keys() else None
+                ing_list.append(ing_dict)
+                list_key.append(r['ingredient_name']['value'])
+            else:
+                if r['ingredient_name']['value']==ing_list[-1]['name']:
+                    ing_list[-1]['function'].append(r['function']['value'])
+                else:
+                    print('sth wrong',r['ingredient_name']['value'])
         ans['ingredients'] = ing_list
-        return ans
-    else:
-        return None
+    return ans
 
 def ResultFormat_Advance(results):
     ans_list = list()
@@ -85,43 +90,13 @@ def queryByName(pid):
                 myns:hasSize ?size.    
         
     }}GROUP BY ?product ?name ?url ?category ?subcategory ?minicategory ?ingredient ?brand ?love ?ingredient_name ?function ?safety_index ?acne_index ?irritant_index       
+    ORDER BY ?ingredient_name
     """
     sparql.setQuery(prefixes + query.format(pid))
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
+    #print(results)
     return ResultFormat_basic(results,pid)
-
-def queryByName_old(pid):
-    query = """
-    SELECT DISTINCT ?product ?name ?url ?category ?subcategory ?minicategory ?brand ?love #(MIN(?price) AS ?minPirce) (MIN(?size) AS ?minSize)
-    WHERE{{
-        ?product a myns:skincare_product;
-            myns:product_id {};
-            myns:product_url ?url;
-            myns:category [rdfs:label ?category];
-            myns:subcategory [rdfs:label ?subcategory];
-            myns:minicategory [rdfs:label ?minicategory];
-            myns:product_name ?name;
-            myns:brand ?brand;
-            myns:numOfLoves ?love;
-            myns:size_price_pair ?spp;
-            myns:hasIngredient ?ingredient.
-        ?ingredient a myns:Compound ;
-            myns:hasFunction ?function ;
-            myns:safety ?safety_index; 
-            myns:acne ?acne_index;
-            myns:irritant ?irritant_index.
-
-        ?spp myns:fromProduct ?product;
-            myns:hasPrice ?price;
-            myns:hasSize ?size.        
-    }}
-    """
-    sparql.setQuery(prefixes + query.format(pid))
-    sparql.setReturnFormat(JSON)
-    results = sparql.query().convert()
-    return results['results']['bindings']
-    
 
 def queryByAttributes(param):
     query = """
@@ -238,8 +213,10 @@ def queryFindFitProduct(pids,conflictedgroup):
 
 
 
+# rr = {'result':result3}
 
-
+# with open('Query3_results.json','w') as outfile:
+#     json.dump(rr,outfile)
 
 # 酒精
 # 變性酒精 alcohol denat.
