@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from SPARQLWrapper import SPARQLWrapper, JSON
-from Queries import queryByAttributes, queryByName, queryFindConflictedGroup, queryFindFitProduct
+from Queries import queryByAttributes, queryByName, queryFindConflictedGroup, queryFindFitProduct, queryByIngredient
 from werkzeug.datastructures import ImmutableMultiDict
  
 app = Flask(__name__)
@@ -28,19 +28,22 @@ def Advanced_param(res):
 
 @app.route('/', methods=['GET'])
 def ping_pong():
-    res = ImmutableMultiDict([('type', 'Basic'), ('product', '1932920')])#1932920
+    #res = ImmutableMultiDict([('type', 'Basic'), ('product', '1932920')])#1932920
+    #res = ImmutableMultiDict([('type', 'Compound'), ('ingredient', 'chem1d76ac2137')])#1932920
     #res = ImmutableMultiDict([('type', 'Advanced'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives'), ('price[]', '0'), ('price[]', '280'),('function[]','Emollient'),('function[]','Whitening')])    #res = request.args
     #res = ImmutableMultiDict([('type', 'Collection'),('collections[]', 'The True Cream Aqua Bomb'),('collections[]', 'Protini™ Polypeptide Moisturizer'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives')])
     #res = ImmutableMultiDict([('type', 'Collection'),('collections[]', 2005023),('collections[]', 2025633), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives'),('price[]', '0'), ('price[]', '280')])
 
-    if res['type']=='Basic':
+    if res['type'] == 'Basic':
         result = queryByName(res['product'])
         return jsonify(result)
-
-    elif res['type']=='Advanced':
+    elif res['type'] == 'Compound':
+        result = queryByIngredient(res['ingredient'])
+        return jsonify(result)
+    elif res['type'] == 'Advanced':
         result = queryByAttributes(Advanced_param(res))
         return jsonify(result)
-    elif res['type']=='Collection':
+    elif res['type'] == 'Collection':
         result = 'No result'
         productsFitAttributes = queryByAttributes(Advanced_param(res))
         if len(productsFitAttributes)>0:
@@ -72,7 +75,9 @@ def ping_pong():
 #     print(data)
 
 '''
-function_list = [myns:HairConditioning,myns:HairConditioning,myns:SkinConditioning, myns:HairFixative, myns:Humectant, myns:Moisturizer, myns:Depilatory, myns:anti-aging, myns:Whitening
+function_list = [
+myns:HairConditioning,
+myns:SkinConditioning, myns:HairFixative, myns:Humectant, myns:Moisturizer, myns:Depilatory, myns:anti-aging, myns:Whitening
 ,myns:Anti-inflammatory,myns:NailConditioning, myns:OralCare	
 myns:Antimicrobial
 myns:Antidandruff

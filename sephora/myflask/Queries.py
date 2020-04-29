@@ -23,7 +23,7 @@ def ResultFormat_basic(results,pid):
     rr = results['results']['bindings']
     if rr:
         ans['product_id'] = pid
-        ans['product_name'] = rr[0]['name']['value']
+        ans['product_name'] = rr[0]['product_name']['value']
         ans['url'] = rr[0]['url']['value']
         ans['brand'] = rr[0]['brand']['value']
         ans['category'] = rr[0]['category']['value']
@@ -31,23 +31,24 @@ def ResultFormat_basic(results,pid):
         ans['minicategory'] = rr[0]['minicategory']['value']
         ans['size'] = float(rr[0]['minsize']['value'])
         ans['price'] = float(rr[0]['minPrice']['value'])
-        ing_list = []
-        list_key = []
+        ing_list = [] # a list of ingredient for each product
+        iid_list = [] # multiple functions for each ingredient
         for r in rr:
-            if r['ingredient_name']['value'] not in list_key:
+            if r['ingredient_id']['value'] not in iid_list:
                 ing_dict=defaultdict(list)
-                ing_dict['name'] = r['ingredient_name']['value']
-                ing_dict['acne'] = r['acne_index']['value'] if 'acne_index' in r.keys() else None
-                ing_dict['irritant'] = r['irritant_index']['value'] if 'irritant_index' in r.keys() else None
-                ing_dict['safety'] = r['safety_index']['value'] if 'safety_index' in r.keys() else None
+                ing_dict['ingredient_id'] = r['ingredient_id']['value'].split('/')[-1]
+                ing_dict['name'] = r['name']['value']
+                ing_dict['acne'] = r['acne']['value'] if 'acne' in r.keys() else None
+                ing_dict['irritant'] = r['irritant']['value'] if 'irritant' in r.keys() else None
+                ing_dict['safety'] = r['safety']['value'] if 'safety' in r.keys() else None
                 ing_dict['function']= [r['function']['value']] if 'function' in r.keys() else None
                 ing_list.append(ing_dict)
-                list_key.append(r['ingredient_name']['value'])
+                iid_list.append(r['name']['value'])
             else:
-                if r['ingredient_name']['value']==ing_list[-1]['name']:
+                if r['name']['value']==ing_list[-1]['name']:
                     ing_list[-1]['function'].append(r['function']['value'])
                 else:
-                    print('sth wrong',r['ingredient_name']['value'])
+                    print('sth wrong',r['name']['value'])
         ans['ingredients'] = ing_list
     return ans
 
@@ -64,9 +65,22 @@ def ResultFormat_Advance(results):
     else:
         return None
 
+def ResultFormat_Ingredient(results):
+    # only one result
+    ans = dict()
+    if results['results']['bindings']:
+        rr = results['results']['bindings'][0]
+        for key in rr.keys():
+            ans[key] = rr[key]['value']
+        ans['ingredient_id'] = ans['ingredient_id'].split('/')[-1]
+    else:
+        return None
+    return ans
+
+
 def queryByName(pid):
     query ="""
-        SELECT DISTINCT ?product ?name ?url ?category ?subcategory ?minicategory ?ingredient ?brand ?love ?ingredient_name ?function ?safety_index ?acne_index ?irritant_index (MIN(?price) AS ?minPrice) (MIN(?size) AS ?minsize)
+        SELECT DISTINCT ?product ?product_name ?url ?category ?subcategory ?minicategory ?ingredient_id ?brand ?love ?name ?function ?safety ?acne ?irritant (MIN(?price) AS ?minPrice) (MIN(?size) AS ?minsize)
         WHERE{{
             ?product a myns:skincare_product;
                 myns:product_id {} ;
@@ -74,29 +88,53 @@ def queryByName(pid):
                 myns:category [rdfs:label ?category];
                 myns:subcategory [rdfs:label ?subcategory];
                 myns:minicategory [rdfs:label ?minicategory];
-                myns:product_name ?name;
+                myns:product_name ?product_name;
                 myns:brand [rdfs:label ?brand];
                 myns:numOfLoves ?love;
                 myns:size_price_pair ?spp;
-                myns:hasIngredient ?ingredient.
-            ?ingredient a myns:Compound ;
-                foaf:name ?ingredient_name;
-                OPTIONAL{{?ingredient myns:hasFunction [rdfs:label ?function]}}
-                OPTIONAL{{?ingredient myns:safety ?safety_index;}}
-                OPTIONAL{{?ingredient myns:acne ?acne_index;}}
-                OPTIONAL{{?ingredient myns:irritant ?irritant_index;}}
+                myns:hasIngredient ?ingredient_id.
+            ?ingredient_id a myns:Compound ;
+                foaf:name ?name;
+                OPTIONAL{{?ingredient_id myns:hasFunction [rdfs:label ?function]}}
+                OPTIONAL{{?ingredient_id myns:safety ?safety;}}
+                OPTIONAL{{?ingredient_id myns:acne ?acne;}}
+                OPTIONAL{{?ingredient_id myns:irritant ?irritant;}}
             ?minspp myns:fromProduct ?product;
                 myns:hasPrice ?price;
                 myns:hasSize ?size.    
         
-    }}GROUP BY ?product ?name ?url ?category ?subcategory ?minicategory ?ingredient ?brand ?love ?ingredient_name ?function ?safety_index ?acne_index ?irritant_index       
-    ORDER BY ?ingredient_name
+    }}GROUP BY ?product ?product_name ?url ?category ?subcategory ?minicategory ?ingredient_id ?brand ?love ?name ?function ?safety ?acne ?irritant       
+    ORDER BY ?name
     """
     sparql.setQuery(prefixes + query.format(pid))
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
-    #print(results)
+    print(results)
     return ResultFormat_basic(results,pid)
+
+
+
+def queryByIngredient(iid):
+    query ="""
+        SELECT DISTINCT * 
+        WHERE{{
+            VALUES ?ingredient_id {{
+            {}
+            }}
+            ?ingredient_id a myns:Compound;
+                        foaf:name ?name;
+            OPTIONAL{{?ingredient_id myns:formula ?forumula ;}}
+            OPTIONAL{{?ingredient_id ns1:sameAs ?link ;}}         	  
+            OPTIONAL{{?ingredient_id myns:hasFunction [rdfs:label ?function]}}
+            OPTIONAL{{?ingredient_id myns:safety ?safety;}}
+            OPTIONAL {{?ingredient_id myns:acne ?acne;}}
+            OPTIONAL {{?ingredient_id myns:irritant ?irritant;}}
+        }}
+    """
+    sparql.setQuery(prefixes + query.format('myns:'+iid))
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+    return ResultFormat_Ingredient(results)
 
 def queryByAttributes(param):
     query = """
