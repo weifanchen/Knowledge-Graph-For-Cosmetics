@@ -1,5 +1,4 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
-import json
 import re
 from collections import defaultdict
 # ./fuseki-server --mem /ds
@@ -19,12 +18,11 @@ prefixes ="""
         
         """
 
-# basic ingredient repeat, because some ingredients have multiple function 
-def ResultFormat_basic(results,pid):
+def ResultFormat_basic(results):
     ans = dict()
     rr = results['results']['bindings']
     if rr:
-        ans['product_id'] = pid
+        ans['product_id'] = rr[0]['product']['value'].split('/')[-1]
         ans['product_name'] = rr[0]['product_name']['value']
         ans['url'] = rr[0]['url']['value']
         ans['brand'] = rr[0]['brand']['value']
@@ -35,23 +33,23 @@ def ResultFormat_basic(results,pid):
         ans['price'] = float(rr[0]['minPrice']['value'])
         ing_list = [] # a list of ingredient for each product
         iid_list = [] # multiple functions for each ingredient
-        # for r in rr:
-        #     if r['ingredient_id']['value'] not in iid_list:
-        #         ing_dict=defaultdict(list)
-        #         ing_dict['ingredient_id'] = r['ingredient_id']['value'].split('/')[-1]
-        #         ing_dict['name'] = r['name']['value']
-        #         if 'acne' in r.keys(): ing_dict['acne'] = r['acne']['value'] 
-        #         if 'irritant' in r.keys(): ing_dict['irritant'] = r['irritant']['value']
-        #         if 'safety' in r.keys(): ing_dict['safety'] = r['safety']['value']
-        #         if 'function' in r.keys(): ing_dict['function']= [r['function']['value']]
-        #         ing_list.append(ing_dict)
-        #         iid_list.append(r['name']['value'])
-        #     else:
-        #         if r['name']['value']==ing_list[-1]['name']:
-        #             ing_list[-1]['function'].append(r['function']['value'])
-        #         else:
-        #             print('sth wrong',r['name']['value'])
-        #ans['ingredients'] = ing_list
+        for r in rr:
+            if r['ingredient_id']['value'] not in iid_list:
+                ing_dict=defaultdict(list)
+                ing_dict['ingredient_id'] = r['ingredient_id']['value'].split('/')[-1]
+                ing_dict['name'] = r['name']['value']
+                if 'acne' in r.keys(): ing_dict['acne'] = r['acne']['value'] 
+                if 'irritant' in r.keys(): ing_dict['irritant'] = r['irritant']['value']
+                if 'safety' in r.keys(): ing_dict['safety'] = r['safety']['value']
+                if 'function' in r.keys(): ing_dict['function']= [r['function']['value']]
+                ing_list.append(ing_dict)
+                iid_list.append(r['ingredient_id']['value'])
+            else:
+                if r['name']['value']==ing_list[-1]['name']:
+                    ing_list[-1]['function'].append(r['function']['value'])
+                else:
+                    print('sth wrong',r['name']['value'])
+        ans['ingredients'] = ing_list
     return ans
 
 def ResultFormat_Advance(results):
@@ -138,39 +136,6 @@ def queryByIngredient_synonym(iid):
     print(results)
     return ResultFormat_ingredient_synonym(results)
 
-def queryByName_separated(pid):
-    query ="""
-        SELECT DISTINCT ?product ?product_name ?url ?category ?subcategory ?minicategory ?ingredient_id ?brand ?love (MIN(?price) AS ?minPrice) (MIN(?size) AS ?minsize)
-        WHERE{{
-            ?product a myns:skincare_product;
-                myns:product_id {} ;
-                myns:product_url ?url;
-                myns:category [rdfs:label ?category];
-                myns:subcategory [rdfs:label ?subcategory];
-                myns:minicategory [rdfs:label ?minicategory];
-                myns:product_name ?product_name;
-                myns:brand [rdfs:label ?brand];
-                myns:numOfLoves ?love;
-                myns:size_price_pair ?spp;
-                myns:hasIngredient ?ingredient_id.
-
-            ?minspp myns:fromProduct ?product;
-                myns:hasPrice ?price;
-                myns:hasSize ?size.    
-        
-        }}GROUP BY ?product ?product_name ?url ?category ?subcategory ?minicategory ?ingredient_id ?brand ?love      
-        #ORDER BY ?ingredient_id
-        """
-    sparql.setQuery(prefixes + query.format(pid))
-    # print('--------------------')
-    # print(query.format(pid))
-    # print('--------------------')
-    sparql.setReturnFormat(JSON)
-    results = sparql.query().convert()
-    print(len(results['results']['bindings']))
-    #return ResultFormat_basic(results,pid)
-
-
 
 def queryByName(pid):
     query ="""
@@ -204,37 +169,44 @@ def queryByName(pid):
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
     print(results)
-    return ResultFormat_basic(results,pid)
+    return ResultFormat_basic(results)
 
 def queryByAttributes(param):
+    print(param)
     query = """
     SELECT DISTINCT ?product ?pid ?name ?url
     WHERE{{
         ?product a myns:skincare_product;
             myns:product_id ?pid;
             myns:product_url ?url;
-            myns:minicategory [rdfs:label ?minicategory];
             myns:product_name ?name;
-            myns:brand [rdfs:label ?brand];
             myns:numOfLoves ?love;
-            myns:size_price_pair ?spp;
-            myns:hasIngredient ?ingredient.
-        ?ingredient a myns:Compound.
+            myns:size_price_pair ?spp.
         ?spp myns:fromProduct ?product;
             myns:hasPrice ?price;
             myns:hasSize ?size.
-        ?ingredient myns:hasFunction [rdfs:label ?function].
   		FILTER (?price>={price[0]} && ?price<={price[1]})
     """  
     query = prefixes + query
-    if param['minicategory']: query +="""FILTER (?minicategory IN ({minicategory}))"""
-    if param['function']: query +="""FILTER (?function IN ({function}))"""
-    if param['brand']: query += """FILTER (?brand = "{brand}" )"""
-    if param['Preservatives']: 
+    if param['minicategory']: 
+        query +="""
+        ?product myns:minicategory [rdfs:label ?minicategory];
+        FILTER (?minicategory IN ({minicategory}))"""
+    if param['brand']: 
+        query += """
+        ?product myns:brand [rdfs:label ?brand];
+        FILTER (?brand = "{brand}" )"""
+    if param['function']: 
+        query +="""
+        ?product myns:hasIngredient [ myns:hasFunction [rdfs:label ?function]]
+        FILTER (?function IN ({function}))"""
+    if param['Preservative']: 
         query += """MINUS{{?product myns:hasIngredient [myns:hasAttribute myns:Preservatives].}}"""
         query += """MINUS{{?product myns:hasIngredient [myns:hasFunction myns:Preservative].}}"""
-    if param['Fragrance']: query += """MINUS{{?product myns:hasIngredient [myns:hasAttribute myns:Fragrance].}}"""
-    if param['Alcohol']: query += """MINUS{{?product myns:hasIngredient [myns:groupOf myns:Alcoholic].}}"""
+    if param['Fragrance']: 
+        query += """MINUS{{?product myns:hasIngredient [myns:hasAttribute myns:Fragrance].}}"""
+    if param['Alcohol']: 
+        query += """MINUS{{?product myns:hasIngredient [myns:groupOf myns:Alcoholic].}}"""
     if param['acne']: 
         query +="""OPTIONAL{{?product myns:hasIngredient [ myns:acne ?acne_index].}}
   		FILTER (?acne_index<={acne} || !BOUND(?acne_index))"""
@@ -247,7 +219,7 @@ def queryByAttributes(param):
    
     query += """}}ORDER BY DESC(?love)"""
     # print('--------------------')
-    # print(query.format(**param))
+    print(query.format(**param))
     # print('--------------------')
     sparql.setQuery(prefixes + query.format(**param))
     sparql.setReturnFormat(JSON)
@@ -319,39 +291,55 @@ def queryFindFitProduct(pids,conflictedgroup):
     return ResultFormat_Advance(results)
 
 
-
-# rr = {'result':result3}
-
-# with open('Query3_results.json','w') as outfile:
-#     json.dump(rr,outfile)
-
-# 酒精
-# 變性酒精 alcohol denat.
-# alcohol中总分有两大类：低分子类对皮肤有害，包括ethyl alcohol（乙醇），methanol（甲醇）， isopropyl alcohol（异丙醇），benzyl alcohol（苯甲醇）；高分子类对皮肤有益，包括cetyl alcohol （鲸蜡醇）, stearyl alcohol（硬脂醇）, cetearyl alcohol（棕榈醇）, lanolin alcohol（羊毛脂醇）。
-
-# param = {
-#     'brand': "CLINIQUE",
-#     'minicategory':False,
-#     'price':[100,500],
-#     'acne':False,
-#     'irrative':2, #
-#     'safety':2,
-#     'fragrance':False,
-#     'preservatives':False,
-#     'alcohol':False # "ingredient_id": "fe88f2158"
-# }
-# result = queryByAttributes(param)
-# result = queryByName('Green Tea Hydrating Cleansing Oil')
-# temp = result["results"]["bindings"]
-    
-# with open('./output/query_result.json', 'w') as fp:
-#     json.dump(temp, fp)
-# print(len(result["results"]["bindings"]))
-# for result in results["results"]["bindings"]:
-#     print result["label"]["value"]
-
-
 '''
+
+
+def queryByName_combined(pid):
+    results = queryByName_separated(pid)
+
+    if results and len(results['ingredient_id'])>0:
+        for ing in results['ingredient_id']:
+            iid = ing.split('/')[-1]
+            ing_info=queryByIngredient_others(iid)
+            
+            print(ing_info)
+        
+        pass
+
+def queryByName_separated(pid):
+    query ="""
+        SELECT DISTINCT ?product ?product_name ?url ?category ?subcategory ?minicategory ?ingredient_id ?brand ?love (MIN(?price) AS ?minPrice) (MIN(?size) AS ?minsize)
+        WHERE{{
+            ?product a myns:skincare_product;
+                myns:product_id {} ;
+                myns:product_url ?url;
+                myns:category [rdfs:label ?category];
+                myns:subcategory [rdfs:label ?subcategory];
+                myns:minicategory [rdfs:label ?minicategory];
+                myns:product_name ?product_name;
+                myns:brand [rdfs:label ?brand];
+                myns:numOfLoves ?love;
+                myns:size_price_pair ?spp;
+                myns:hasIngredient ?ingredient_id.
+
+            ?minspp myns:fromProduct ?product;
+                myns:hasPrice ?price;
+                myns:hasSize ?size.    
+        
+        }}GROUP BY ?product ?product_name ?url ?category ?subcategory ?minicategory ?ingredient_id ?brand ?love      
+        #ORDER BY ?ingredient_id
+        """
+    sparql.setQuery(prefixes + query.format(pid))
+    # print('--------------------')
+    # print(query.format(pid))
+    # print('--------------------')
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+    return ResultFormat_basic(results)
+
+
+
+
 import pandas as pd
 products=pd.read_json('./sephora/output/sephora_skincare_product_ingredient_list.jl',lines=True)
 ingredients=pd.read_json('./sephora/output/ingredients.jl',lines=True)
