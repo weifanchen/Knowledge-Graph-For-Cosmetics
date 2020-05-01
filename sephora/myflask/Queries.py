@@ -55,11 +55,14 @@ def ResultFormat_basic(results):
 def ResultFormat_Advance(results):
     ans_list = list()
     if results['results']['bindings']:
+        print(results['results']['bindings'])
         for r in results['results']['bindings']:
             ans = dict()
             ans['product_id'] = r['pid']['value']
             ans['product_name'] = r['name']['value']
             ans['url'] = r['url']['value']
+            ans['brand'] = r['brand']['value']
+            ans['minicategory'] = r['minicategory']['value']
             ans_list.append(ans)
         return ans_list
     else:
@@ -71,7 +74,7 @@ def ResultFormat_Ingredient(results):
     if results['results']['bindings']:
         ans['ingredient_id'] = results['results']['bindings'][0]['ingredient_id']['value'].split('/')[-1]
         ans['name'] = results['results']['bindings'][0]['name']['value']
-        ans['url'] = results['results']['bindings'][0]['url']['value']
+        ans['link'] = results['results']['bindings'][0]['url']['value']
         if 'forumula' in results['results']['bindings'][0].keys(): ans['forumula'] = results['results']['bindings'][0]['forumula']['value']
         if 'safety' in results['results']['bindings'][0].keys(): ans['safety'] = results['results']['bindings'][0]['safety']['value']
         if 'acne' in results['results']['bindings'][0].keys(): ans['acne'] = results['results']['bindings'][0]['acne']['value']
@@ -133,7 +136,6 @@ def queryByIngredient_synonym(iid):
     sparql.setQuery(prefixes + query.format('myns:'+iid))
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
-    print(results)
     return ResultFormat_ingredient_synonym(results)
 
 
@@ -168,10 +170,9 @@ def queryByName(pid):
     sparql.setQuery(prefixes + query.format(pid))
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
-    print(results)
     return ResultFormat_basic(results)
 
-def queryByAttributes(param):
+def queryByAttributes_old_slow(param):
     print(param)
     query = """
     SELECT DISTINCT ?product ?pid ?name ?url
@@ -227,6 +228,74 @@ def queryByAttributes(param):
     #print(len(results['results']['bindings']))
     return ResultFormat_Advance(results)
 
+def queryByAttributes(param):
+    inner_query = """
+    SELECT DISTINCT ?product ?pid ?name ?url ?brand ?minicategory
+    WHERE{{
+        ?product a myns:skincare_product;
+            myns:product_id ?pid;
+            myns:product_url ?url;
+            myns:product_name ?name;
+            myns:brand [rdfs:label ?brand];
+            myns:minicategory [rdfs:label ?minicategory];
+            myns:numOfLoves ?love;
+            myns:size_price_pair ?spp.
+        ?spp myns:fromProduct ?product;
+            myns:hasPrice ?price;
+            myns:hasSize ?size.
+  		FILTER (?price>={price[0]} && ?price<={price[1]})  
+    """
+    if param['minicategory']: 
+        inner_query +="""
+        FILTER (?minicategory IN ({minicategory}))"""
+    if param['brand']: 
+        inner_query += """
+        FILTER (?brand = "{brand}" )"""
+    if any([param['function'],param['Preservative'],param['Fragrance'],param['Alcohol'],param['acne'],param['irrative']]):
+        query = """
+        SELECT DISTINCT ?product ?pid ?name ?url ?brand ?minicategory
+        WHERE{{
+            ?product a myns:skincare_product.
+        """
+        if param['function']: 
+            query +="""
+            ?product myns:hasIngredient [ myns:hasFunction [rdfs:label ?function]]
+            FILTER (?function IN ({function}))"""
+        if param['Preservative']: 
+            query += """MINUS{{?product myns:hasIngredient [myns:hasAttribute myns:Preservatives].}}"""
+            query += """MINUS{{?product myns:hasIngredient [myns:hasFunction myns:Preservative].}}"""
+        if param['Fragrance']: 
+            query += """MINUS{{?product myns:hasIngredient [myns:hasAttribute myns:Fragrance].}}"""
+        if param['Alcohol']: 
+            query += """MINUS{{?product myns:hasIngredient [myns:groupOf myns:Alcoholic].}}"""
+        if param['acne']: 
+            query +="""OPTIONAL{{?product myns:hasIngredient [ myns:acne ?acne_index].}}
+            FILTER (?acne_index<={acne} || !BOUND(?acne_index))"""
+        if param['irrative']:
+            query +="""OPTIONAL{{?product myns:hasIngredient [ myns:acne ?irrative_index].}}
+            FILTER (?irrative_index<={irrative} || !BOUND(?irrative_index))"""
+
+        # ending = """
+        #     {{
+        #         {}
+        #     }}
+        #         }}		
+        #     }}
+        #     }}ORDER BY DESC(?love)
+        # """
+        # query = query + ending.format(inner_query)
+        query = query + "{{" + inner_query +"}}\n" + "}}\n" + "}}ORDER BY DESC(?love)"
+    else:
+        query = inner_query + """}}ORDER BY DESC(?love)"""
+    
+    #print(query.format(**param))
+    # print('--------------------')
+    sparql.setQuery(prefixes + query.format(**param))
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+    print('advanced result: ',len(results['results']['bindings']))
+    return ResultFormat_Advance(results)
+    
 
 def queryIfProductsConflicted(products):
     # check if a new product is conflict with the existing products
@@ -287,59 +356,11 @@ def queryFindFitProduct(pids,conflictedgroup):
     sparql.setQuery(prefixes + query)
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
-    #print(len(results['results']['bindings']))
+    print(len(results['results']['bindings']))
     return ResultFormat_Advance(results)
 
 
 '''
-
-
-def queryByName_combined(pid):
-    results = queryByName_separated(pid)
-
-    if results and len(results['ingredient_id'])>0:
-        for ing in results['ingredient_id']:
-            iid = ing.split('/')[-1]
-            ing_info=queryByIngredient_others(iid)
-            
-            print(ing_info)
-        
-        pass
-
-def queryByName_separated(pid):
-    query ="""
-        SELECT DISTINCT ?product ?product_name ?url ?category ?subcategory ?minicategory ?ingredient_id ?brand ?love (MIN(?price) AS ?minPrice) (MIN(?size) AS ?minsize)
-        WHERE{{
-            ?product a myns:skincare_product;
-                myns:product_id {} ;
-                myns:product_url ?url;
-                myns:category [rdfs:label ?category];
-                myns:subcategory [rdfs:label ?subcategory];
-                myns:minicategory [rdfs:label ?minicategory];
-                myns:product_name ?product_name;
-                myns:brand [rdfs:label ?brand];
-                myns:numOfLoves ?love;
-                myns:size_price_pair ?spp;
-                myns:hasIngredient ?ingredient_id.
-
-            ?minspp myns:fromProduct ?product;
-                myns:hasPrice ?price;
-                myns:hasSize ?size.    
-        
-        }}GROUP BY ?product ?product_name ?url ?category ?subcategory ?minicategory ?ingredient_id ?brand ?love      
-        #ORDER BY ?ingredient_id
-        """
-    sparql.setQuery(prefixes + query.format(pid))
-    # print('--------------------')
-    # print(query.format(pid))
-    # print('--------------------')
-    sparql.setReturnFormat(JSON)
-    results = sparql.query().convert()
-    return ResultFormat_basic(results)
-
-
-
-
 import pandas as pd
 products=pd.read_json('./sephora/output/sephora_skincare_product_ingredient_list.jl',lines=True)
 ingredients=pd.read_json('./sephora/output/ingredients.jl',lines=True)

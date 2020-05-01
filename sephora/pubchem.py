@@ -9,9 +9,11 @@ import string
 import json
 import pandas as pd
 
-driver = webdriver.Chrome('./chromedriver')
+driver = webdriver.Chrome('/Users/weifanchen/chromedriver')
 
-compSet = set()
+with open('./output/compounds.jl') as json_compound:
+    compList = [json.loads(line) for line in json_compound]
+compSet = set([c['chem_url'] for c in compList])
 
 def getPubchem(ing):
     driver.get('https://pubchem.ncbi.nlm.nih.gov')
@@ -25,27 +27,28 @@ def getPubchem(ing):
         driver.find_element_by_css_selector('div#featured-results div')   
         comp = driver.find_element_by_css_selector('div.f-0875 div span a').get_attribute("href")
         compid, compinfo = comp.split('/')[-1], None 
-        # if comp not in compSet:
-        #     compid = comp.split('/')[-1]
-        #     compSet.add(comp)
-        #     driver.get(comp)
-        #     time.sleep(2.5)
-        #     response = BeautifulSoup(driver.page_source, 'html.parser') 
-        #     sysSet = set()
-        #     for r in response.select('section#Synonyms section'): 
-        #         sysSet.update(set([rr.text for rr in r.select('div.columns p')]))
+        if comp not in compSet:
+            compid = comp.split('/')[-1]
+            compSet.add(comp)
+            driver.get(comp)
+            time.sleep(2.5)
+            response = BeautifulSoup(driver.page_source, 'html.parser') 
+            sysSet = set()
+            for r in response.select('section#Synonyms section'): 
+                sysSet.update(set([rr.text for rr in r.select('div.columns p')]))
 
-        #     rows = response.select('div.summary tr')
-        #     formula = ''
-        #     safety = []
-        #     for row in rows:
-        #         if row.select('th') and row.select('th')[0].text == 'Molecular Formula:':
-        #            formula = row.select('td a span')[0].text     
-        #         if row.select('th') and row.select('th')[0].text == 'Chemical Safety:':    
-        #            safety = [ s.get('data-caption') for s in row.select('td a p div')]    
-        #     compinfo = {'chem_id': compid, 'chem_url': comp, 'safety': safety, 'formula': formula, 'synonyms':list(sysSet)}            
-        # else:
-        #     compid, compinfo = comp.split('/')[-1], None
+            rows = response.select('div.summary tr')
+            formula = ''
+            safety = []
+            for row in rows:
+                if row.select('th') and row.select('th')[0].text == 'Molecular Formula:':
+                   formula = row.select('td a span')[0].text     
+                if row.select('th') and row.select('th')[0].text == 'Chemical Safety:':    
+                   safety = [ s.get('data-caption') for s in row.select('td a p div')]    
+            compinfo = {'chem_id': compid, 'chem_url': comp, 'safety': safety, 'formula': formula, 'synonyms':list(sysSet)}            
+        else:
+            compid, compinfo = comp.split('/')[-1], None
+        print(ing)
    
     except:
         compid, compinfo = None, None
@@ -54,31 +57,80 @@ def getPubchem(ing):
     return compid, compinfo
     
 
-ingredients = pd.read_json('ingredients.jl', lines=True)
-compfile = open('compound2.jl', 'a')
+def temppp(idd):
+    comp = 'https://pubchem.ncbi.nlm.nih.gov/compound/'+str(idd)
+    driver.get(comp)
+    compid, compinfo = comp.split('/')[-1], None 
+    if comp not in compSet:
+        print('yes')
+        compid = comp.split('/')[-1]
+        compSet.add(comp)
+        driver.get(comp)
+        time.sleep(2.5)
+        response = BeautifulSoup(driver.page_source, 'html.parser') 
+        sysSet = set()
+        for r in response.select('section#Synonyms section'): 
+            sysSet.update(set([rr.text for rr in r.select('div.columns p')]))
 
-compids = []
-# enumerate(ingredients.name)
-for i, ing in enumerate(ingredients.name[1065:]):
-    print(i+1065, ing)
-    compid, compinfo = getPubchem(ing)
-    # if compinfo:
-    #     compfile.write(json.dumps(compinfo) + '\n')
-    #     compfile.flush()
-    compids.append(compid)
+        rows = response.select('div.summary tr')
+        formula = ''
+        safety = []
+        for row in rows:
+            if row.select('th') and row.select('th')[0].text == 'Molecular Formula:':
+                formula = row.select('td a span')[0].text     
+            if row.select('th') and row.select('th')[0].text == 'Chemical Safety:':    
+                safety = [ s.get('data-caption') for s in row.select('td a p div')]    
+        compinfo = {'chem_id': compid, 'chem_url': comp, 'safety': safety, 'formula': formula, 'synonyms':list(sysSet)}            
+
+    return compid, compinfo
+
+
+with open('./output/ingredients.jl') as json_ingredients:
+    ingredients = [json.loads(line) for line in json_ingredients]
+
+chem_id_list_path = "./output/ingredient_chem_id_missing.txt"
+chem_id_list= []
+with open(chem_id_list_path) as ffile:
+    chem_id_list = ffile.read().splitlines() 
+
+compfile = open('./output/compounds.jl', 'a')
+
+for chem_id in chem_id_list:
+    compid, compinfo = temppp(chem_id)
+    print(compid)
+    if compinfo: 
+        compfile.write(json.dumps(compinfo) + '\n')
+        compfile.flush()
+
+
+# compids = []
+# for i, ing in enumerate(ingredients):
+#     if not ing['chem_id'] and :
+#         for syn in ing['synonym']:
+#             compid, compinfo = getPubchem(syn)
+#             if compinfo: 
+#                 compfile.write(json.dumps(compinfo) + '\n')
+#                 compfile.flush()
+#                 ing['chem_id'] = compid
+#                 break
+#     else:
+#         compids.append(ing['chem_id'])
     # print(compids)
 
-import numpy as np
-ingredients['chem_id'] = np.asarray(compids)
+#import numpy as np
+#ingredients['chem_id'] = np.asarray(compids)
 
 compfile.close()
 driver.close()
 
-ingredients.to_json('ingredients.jl', orient="records", lines=True)
+# ingredient_file = open('./output/ingredients_0414_2.jl', 'a')
+# for i in ingredients:
+#     ingredient_file.write(json.dumps(i) + '\n')
+#     ingredient_file.flush()
 
+# ingredient_file.close()
 
-
-
+#ingredients.to_json('ingredients_0413.jl', orient="records", lines=True)
 
 
 

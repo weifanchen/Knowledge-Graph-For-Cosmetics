@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from SPARQLWrapper import SPARQLWrapper, JSON
-from Queries import queryByAttributes, queryByName, queryFindConflictedGroup, queryFindFitProduct, queryByIngredient_others, queryByIngredient_synonym, queryByIngredient, queryByName_separated
+from Queries import queryByAttributes, queryByName, queryFindConflictedGroup, queryFindFitProduct, queryByIngredient_others, queryByIngredient_synonym, queryByIngredient
 from werkzeug.datastructures import ImmutableMultiDict
  
 app = Flask(__name__)
@@ -16,10 +16,12 @@ def Advanced_param(res):
             'acne' : res.get('acne',False),
             'irrative': res.get('irri',False),
             'Fragrance':False,
-            'Preservatives':False,
+            'Preservative':False,
             'Alcohol':False ,
             'function': str(res.getlist('function[]'))[1:-1]
         } #default
+    if res.get('acne')=='1': param['acne']=False
+    if res.get('irri')=='1': param['irrative']=False
     for fda in res.getlist('fda[]'):
         param[fda] = True
     return param
@@ -28,16 +30,21 @@ def Advanced_param(res):
 
 @app.route('/', methods=['GET'])
 def ping_pong():
-    res = ImmutableMultiDict([('type', 'Basic'), ('product', '1932920')])#1932920
+    #res = ImmutableMultiDict([('type', 'Basic'), ('product', '1932920')])
     #res = ImmutableMultiDict([('type', 'Compound'), ('ingredient', 'chem60de5d6467')])
-    #res = ImmutableMultiDict([('type', 'Advanced'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives'), ('price[]', '0'), ('price[]', '280'),('function[]','Emollient'),('function[]','Whitening')])    #res = request.args
-    #res = ImmutableMultiDict([('type', 'Advanced'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('brand', 'SEPHORA COLLECTION'), ('price[]', '0'), ('price[]', '260'), ('acne', '3'), ('irri', '2')])
+    # res = ImmutableMultiDict([('type', 'Advanced'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('price[]', '0'), ('price[]', '280')]) # only inner qyery
+    #res = ImmutableMultiDict([('type', 'Advanced'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservative'), ('price[]', '0'), ('price[]', '280'),('function[]','Emollient'),('function[]','Whitening')])   
+    # two words function !
+    # res = ImmutableMultiDict([('type', 'Advanced'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('brand', 'SEPHORA COLLECTION'), ('price[]', '0'), ('price[]', '260'), ('acne', '3'), ('irri', '2'),('function[]','Emollient')])
     #res = ImmutableMultiDict([('type', 'Collection'),('collections[]', 'The True Cream Aqua Bomb'),('collections[]', 'Protini™ Polypeptide Moisturizer'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives')])
     #res = ImmutableMultiDict([('type', 'Collection'),('collections[]', 2005023),('collections[]', 2025633), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives'),('price[]', '0'), ('price[]', '280')])
-
+    #res = ImmutableMultiDict([('type', 'Collection'), ('categories[]', 'Face Oils'), ('brand', ''), ('price[]', '0'), ('price[]', '240'), ('acne', '1'), ('irri', '1'), ('fda[]', 'Fragrance'), ('collection[]', 'p_1893163')])
+    res = request.args
+    print(res)
+    
     if res['type'] == 'Basic':
-        result = queryByName_separated(res['product'])
-        print(len(result['ingredients']))
+        result = queryByName(res['product'])
+        #print(len(result['ingredients']))
         return jsonify(result)
     elif res['type'] == 'Compound':
         result = queryByIngredient(res['ingredient'])
@@ -51,15 +58,15 @@ def ping_pong():
         if len(productsFitAttributes)>0:
             pids = set([int(p['product_id']) for p in productsFitAttributes])
             pids = str(pids)[1:-1]
-            collections = str(res.getlist('collections[]'))[1:-1]
+            collections_list = res.getlist('collection[]')
+            collections = str([int(cl.replace('p_','')) for cl in collections_list])[1:-1]
             conflictedgroup = queryFindConflictedGroup(collections)
             if conflictedgroup:
-                #print('ready to queryFindFitProduct')
+                print('found conflicted group, ready to queryFindFitProduct')
                 result=queryFindFitProduct(pids,conflictedgroup)
-                #print(result)
+            else:
+                return jsonify(productsFitAttributes)
         return jsonify(result)
-
-
     else:
         return jsonify('Hello from Flask!')
 
