@@ -4,7 +4,7 @@ export default {
         {value: 'Face Oils', label: 'Face Oils'},
         {value: 'Mists & Essences', label: 'Mists & Essences'},
         {value: 'Night Creams', label: 'Night Creams'},
-        {value: 'BB & CC Creams ', label: 'Moisturizers'},
+        {value: 'BB & CC Creams', label: 'BB & CC Creams'},
         {value: 'Decollete & Neck Creams', label: 'Decollete & Neck Creams'}
     ],
     Treatments: [
