@@ -18,6 +18,8 @@ prefixes ="""
         prefix xsd: <http://www.w3.org/2001/XMLSchema#> 
         
         """
+
+# basic ingredient repeat, because some ingredients have multiple function 
 def ResultFormat_basic(results,pid):
     ans = dict()
     rr = results['results']['bindings']
@@ -33,23 +35,23 @@ def ResultFormat_basic(results,pid):
         ans['price'] = float(rr[0]['minPrice']['value'])
         ing_list = [] # a list of ingredient for each product
         iid_list = [] # multiple functions for each ingredient
-        for r in rr:
-            if r['ingredient_id']['value'] not in iid_list:
-                ing_dict=defaultdict(list)
-                ing_dict['ingredient_id'] = r['ingredient_id']['value'].split('/')[-1]
-                ing_dict['name'] = r['name']['value']
-                ing_dict['acne'] = r['acne']['value'] if 'acne' in r.keys() else None
-                ing_dict['irritant'] = r['irritant']['value'] if 'irritant' in r.keys() else None
-                ing_dict['safety'] = r['safety']['value'] if 'safety' in r.keys() else None
-                ing_dict['function']= [r['function']['value']] if 'function' in r.keys() else None
-                ing_list.append(ing_dict)
-                iid_list.append(r['name']['value'])
-            else:
-                if r['name']['value']==ing_list[-1]['name']:
-                    ing_list[-1]['function'].append(r['function']['value'])
-                else:
-                    print('sth wrong',r['name']['value'])
-        ans['ingredients'] = ing_list
+        # for r in rr:
+        #     if r['ingredient_id']['value'] not in iid_list:
+        #         ing_dict=defaultdict(list)
+        #         ing_dict['ingredient_id'] = r['ingredient_id']['value'].split('/')[-1]
+        #         ing_dict['name'] = r['name']['value']
+        #         if 'acne' in r.keys(): ing_dict['acne'] = r['acne']['value'] 
+        #         if 'irritant' in r.keys(): ing_dict['irritant'] = r['irritant']['value']
+        #         if 'safety' in r.keys(): ing_dict['safety'] = r['safety']['value']
+        #         if 'function' in r.keys(): ing_dict['function']= [r['function']['value']]
+        #         ing_list.append(ing_dict)
+        #         iid_list.append(r['name']['value'])
+        #     else:
+        #         if r['name']['value']==ing_list[-1]['name']:
+        #             ing_list[-1]['function'].append(r['function']['value'])
+        #         else:
+        #             print('sth wrong',r['name']['value'])
+        #ans['ingredients'] = ing_list
     return ans
 
 def ResultFormat_Advance(results):
@@ -135,6 +137,39 @@ def queryByIngredient_synonym(iid):
     results = sparql.query().convert()
     print(results)
     return ResultFormat_ingredient_synonym(results)
+
+def queryByName_separated(pid):
+    query ="""
+        SELECT DISTINCT ?product ?product_name ?url ?category ?subcategory ?minicategory ?ingredient_id ?brand ?love (MIN(?price) AS ?minPrice) (MIN(?size) AS ?minsize)
+        WHERE{{
+            ?product a myns:skincare_product;
+                myns:product_id {} ;
+                myns:product_url ?url;
+                myns:category [rdfs:label ?category];
+                myns:subcategory [rdfs:label ?subcategory];
+                myns:minicategory [rdfs:label ?minicategory];
+                myns:product_name ?product_name;
+                myns:brand [rdfs:label ?brand];
+                myns:numOfLoves ?love;
+                myns:size_price_pair ?spp;
+                myns:hasIngredient ?ingredient_id.
+
+            ?minspp myns:fromProduct ?product;
+                myns:hasPrice ?price;
+                myns:hasSize ?size.    
+        
+        }}GROUP BY ?product ?product_name ?url ?category ?subcategory ?minicategory ?ingredient_id ?brand ?love      
+        #ORDER BY ?ingredient_id
+        """
+    sparql.setQuery(prefixes + query.format(pid))
+    # print('--------------------')
+    # print(query.format(pid))
+    # print('--------------------')
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+    print(len(results['results']['bindings']))
+    #return ResultFormat_basic(results,pid)
+
 
 
 def queryByName(pid):
