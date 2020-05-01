@@ -1,6 +1,6 @@
 <template>
     <div style="width:100%;display:flex;background-color:#F6F7FB;">
-        <div id='left' style="width:7%;background-color:#415E52;">
+        <div id='left' style="width:7%;background-color:#3A4161;">
             <div style="height:95px;padding: 10px 15px;color: #fff;font-family:'Anton';font-size:24px;background-color:#230F35;">Cos<br>Chem</div>
             <!-- <div style="height:50px;margin:15px;padding: 10px 0px;color: #230F35;font-family:'Anton';font-size:12px;writing-mode: vertical-lr;text-orientation: mixed;">INF558 Building Knowledge Graph</div> -->
         </div>
@@ -8,7 +8,7 @@
             <div id="tabs" class="container">
             
                 <div class="tabs">
-                    <a v-on:click="activetab=1" v-bind:class="[ activetab === 1 ? 'active' : '' ]">Product</a>
+                    <a v-on:click="activetab=1; productLoaded=fasle" v-bind:class="[ activetab === 1 ? 'active' : '' ]">Product</a>
                     <a v-on:click="activetab=2" v-bind:class="[ activetab === 2 ? 'active' : '' ]">Ingredient</a>
                     <a v-on:click="activetab=3;clickAdvanced=false" v-bind:class="[ activetab === 3 ? 'active' : '' ]">Advanced</a>
                 </div>
@@ -102,7 +102,7 @@
                             </div>
                             <div class='filter' style='width:223.97px;margin-right: 30px;'>
                                 <p style='width:223.97px;margin-bottom: 5px;'>Brand</p>
-                                <Select v-model="bra" placeholder='Choose brand'>
+                                <Select v-model="bra" placeholder='Choose a brand'>
                                     <Option v-for="item in brand" :value="item" :key="item">{{ item }}</Option>
                                 </Select>
                             </div>
@@ -125,13 +125,13 @@
                         <div style='display:flex; padding: 0px 20px;margin-top:15px;'>
                             <div style='width:223.97px;margin-right: 40px;'>
                                 <p style='margin-bottom: 5px;'>Functions</p>
-                                <Select style='width:223.97px;' v-model="func" multiple placeholder='Choose Category'>
+                                <Select style='width:223.97px;' v-model="func" multiple placeholder='Choose desired functions'>
                                     <Option v-for="item in funcList" :value="item" :key="item">{{ item }}</Option>
                                 </Select>
                             </div>
                             <div style='width:223.97px;margin-right: 30px;'>
                                 <p style='margin-bottom: 5px;'>Avoid</p>
-                                <Select style='width:223.97px' v-model="fda" multiple placeholder='Choose Category'>
+                                <Select style='width:223.97px' v-model="fda" multiple placeholder='Choose some restrictions'>
                                     <Option v-for="item in avoidList" :value="item.value" :key="item.value">{{ item.label }}</Option>
                                 </Select>
                             </div>
@@ -231,11 +231,11 @@
                                 <ul style="list-style-type:none;">
                                     <li v-if = "ingmsg.hasOwnProperty('forumula')">{{ingmsg.forumula}}</li>
                                     <li v-if = "ingmsg.hasOwnProperty('link')"><a v-bind:href="ingmsg.link" target="_blank">{{ingmsg.link}}</a></li>
-                                    <li v-if = "ingmsg.hasOwnProperty('function')">{{ingmsg.function}}</li>
+                                    <li v-if = "ingmsg.hasOwnProperty('function')"><p v-for="item in ingmsg.function" v-bind:key="item">{{item}}</p></li>
                                     <li v-if = "ingmsg.hasOwnProperty('acne')">{{ingmsg.acne}}</li>
                                     <li v-if = "ingmsg.hasOwnProperty('irritant')">{{ingmsg.irritant}}</li>
                                     <li v-if = "ingmsg.hasOwnProperty('safety')">{{ingmsg.safety}}</li>
-                                    <li v-if = "ingmsg.hasOwnProperty('synonym')">{{ingmsg.synonym}}</li>
+                                    <li v-if = "ingmsg.hasOwnProperty('synonym')"><p v-for="item in ingmsg.synonym" v-bind:key="item">{{item}}</p></li>
                                 </ul>                           
                             </div>
                         </div>
@@ -251,13 +251,14 @@
                     </div>
                     <!-- {{msg}} -->
                     <div v-if="msgLoaded">
-                        <p>{{listmsg.length}} results</p>
+                        <p style="margin-bottom:30px" v-if="msgLoaded">{{listmsg.length}} results</p>
                         <div style="padding: 0px 20px;min-height:700px;">
                             <div id='pro' v-for="item in listmsg" :key="item.id" style="display:flex; height:90px">
-                                <div style="float:left;width:90%">
-                                    <p @click="getProduct(item)">{{item.product_name}}</p>
-                                </div>
                                 <div style="float:right;width:90%">
+                                    <p id='productname' @click="getProduct(item)"><strong>{{item.product_name}}</strong></p>
+                                    <p>{{item.brand}} | {{item.minicategory}}</p>
+                                </div>
+                                <div style="float:left;width:10%">
                                     <img v-bind:src="productDict[item.product_id].image" style="max-height:160px;width:50px"/>
                                 </div>
 
@@ -285,7 +286,7 @@ import brand from '@/assets/brand.json'
 
 // exmaple query result
 // import proexample from '@/assets/proexample.json'
-// import advexample from '@/assets/advexample.json'
+import advexample from '@/assets/advexample.json'
 
 export default{
     mounted(){
@@ -383,6 +384,15 @@ export default{
             // console.log(this.selected)
             this.productLoaded = true;
             this.activetab = 1;
+
+            if(this.mycollect.includes(this.selected['id'])){
+                document.getElementById("collection").innerHTML = "Out of Collection"
+                document.getElementById("collection").className = "away"
+            }else{
+                document.getElementById("collection").innerHTML = "Add to Collection"
+                document.getElementById("collection").className = "add"
+            }
+
             // this.msg = proexample;
         },
         
@@ -416,9 +426,8 @@ export default{
 
         // get list
         getMsg(){
-            console.log("Hello")
             this.msgLoaded = false;
-            this.msg = ''; 
+            this.listmsg = ''; 
             this.clickAdvanced = true;
             const path = 'http://localhost:5000/';
             
@@ -433,7 +442,7 @@ export default{
                     acne: this.acne,
                     irri: this.irri,
                     fda: this.fda,
-                    function: this.function,
+                    function: this.func,
                     collection: this.mycollect
                 }
                 }).then((res) => {
@@ -443,7 +452,10 @@ export default{
                 .catch((error) => {
                     console.error(error);
                 });
-                this.msgLoaded = true;
+                
+                if(this.listmsg!=''){
+                    this.msgLoaded = true;
+                }
                 // this.msg = advexample;
 
             }else{
@@ -457,7 +469,7 @@ export default{
                     acne: this.acne,
                     irri: this.irri,
                     fda: this.fda,
-                    function: this.function
+                    function: this.func
                 }
                 }).then((res) => {
                     console.log(res);
@@ -466,10 +478,14 @@ export default{
                 .catch((error) => {
                     console.error(error);
                 });
-                this.msgLoaded = true;
+                if(this.listmsg!=''){
+                    this.msgLoaded = true;
+                }
                 // this.msg = advexample;
             }
-            // this.listmsg = advexample;
+            console.log("Hello")
+            this.listmsg = advexample;
+            this.msgLoaded = true;
         },
 
         // autocomplete method
@@ -914,7 +930,7 @@ li.ingredient:hover{
     padding: 3px 0px;
 }
 
-#pro div p:hover{
+#pro div p#productname:hover{
     cursor: pointer;
     color:rgb(120, 137, 179);
 }
