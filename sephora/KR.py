@@ -55,11 +55,11 @@ class productGraph:
 
         product_brand_uri = URIRef(MYNS['brand']) 
         self.my_kg.add((product_brand_uri, RDF.type, RDFS.Class))
-        self.my_kg.add((product_brand_uri, RDFS.subClassOf, MYNS['skincare_product']))
+        #self.my_kg.add((product_brand_uri, RDFS.subClassOf, MYNS['skincare_product']))
 
         category_uri = URIRef(MYNS['category']) 
         self.my_kg.add((category_uri,RDF.type, RDFS.Class))
-        self.my_kg.add((category_uri,RDFS.subClassOf, MYNS['skincare_product']))
+        #self.my_kg.add((category_uri,RDFS.subClassOf, MYNS['skincare_product']))
 
         subcategory_uri = URIRef(MYNS['subcategory']) 
         self.my_kg.add((subcategory_uri,RDF.type, RDFS.Class))
@@ -82,6 +82,12 @@ class productGraph:
         self.my_kg.add((size_uri, RDFS.label,Literal('has size')))
         self.my_kg.add((size_uri, RDFS.domain, MYNS['size_price_pair']))
         self.my_kg.add((size_uri, RDFS.range, XSD.double))
+
+        size_uri = URIRef(MYNS['hasUnit']) 
+        self.my_kg.add((size_uri, RDF.type, RDF.Property))
+        self.my_kg.add((size_uri, RDFS.label,Literal('has unit')))
+        self.my_kg.add((size_uri, RDFS.domain, MYNS['size_price_pair']))
+        self.my_kg.add((size_uri, RDFS.range, XSD.string))
 
         from_product_uri = URIRef(MYNS['fromProduct']) 
         self.my_kg.add((from_product_uri, RDF.type, RDF.Property))
@@ -148,13 +154,29 @@ class productGraph:
         else:
             return int(string)
 
-    def extract_size(self,string):
-        match=re.search(r'([0-9\.]+) oz',string)
+    def add_size_func(self,uri,string):
+        match=re.search(r'([0-9\.]+) oz|([0-9\.]+)oz|([0-9\.]+) fl oz',string)
         if match:
-            return float(match.group(1)) #oz
+            match_list = [match.group(1),match.group(2),match.group(3)]
+            match_string = [m for m in match_list if m][0]
+            self.my_kg.add((uri, MYNS['hasSize'],Literal(float(match_string))))
+            self.my_kg.add((uri, MYNS['hasUnit'], Literal('oz')))
         else:
-            return string
-            #print(string)
+            match2 = re.match(r'([0-9]+) (.*$)',string)
+            if match2:
+                self.my_kg.add((uri, MYNS['hasSize'],Literal(float(match2.group(1)))))
+                self.my_kg.add((uri, MYNS['hasUnit'], Literal(match2.group(2))))
+            else:
+                self.my_kg.add((uri, MYNS['hasSize'], Literal(string)))
+
+    # def extract_size(self,string):
+    #     match=re.search(r'([0-9\.]+)oz| oz| fl oz',string)
+    #     match=re.search(r'([0-9]+) (.*$)',string)
+    #     if match:
+    #         #return float(match.group(1)) #oz
+    #     else:
+    #         return string
+ 
 
     def extract_price(self,string):
         match=re.search(r'\$([0-9\.]+)',string)
@@ -193,7 +215,8 @@ class productGraph:
                 each_size_uri = URIRef(MYNS['ssp_'+str(p['product_id'])+'_'+str(i)])
                 self.my_kg.add((product_uri, MYNS['size_price_pair'], each_size_uri))
                 self.my_kg.add((each_size_uri, MYNS['hasPrice'], Literal(self.extract_price(p['prices'][i]))))
-                self.my_kg.add((each_size_uri, MYNS['hasSize'], Literal(self.extract_size(p['sizes'][i]))))
+                self.add_size_func(each_size_uri,p['sizes'][i])
+                #self.my_kg.add((each_size_uri, MYNS['hasSize'], Literal(self.extract_size(p['sizes'][i]))))
                 self.my_kg.add((each_size_uri, MYNS['fromProduct'], product_uri))
         # elif len(p['prices'])==0:
         #     print('empty price/size ' ,p['product_id'])

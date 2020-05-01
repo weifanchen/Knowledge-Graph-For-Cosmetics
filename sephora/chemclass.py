@@ -64,6 +64,11 @@ kgraph.add((comp, myns['acne'], XSD.integer))
 kgraph.add((comp, myns['irritant'], XSD.integer))
 kgraph.add((comp, myns['safety'], XSD.integer))
 
+# chem_id class
+# chem_id = URIRef(myns['chem_id'])
+# kgraph.add((chem_id, RDF.type, schema['Class']))
+# kgraph.add((chem_id, RDFS.label, Literal('chem id')))
+
 # safety class
 ssafety = URIRef(myns['Safety'])
 kgraph.add((ssafety, RDF.type, schema['Class']))
@@ -157,20 +162,14 @@ chemclass = {'VitaminC': ['vitamin c'],
              'Alcoholic':['ethyl alcohol','methanol','isopropyl alcohol','benzyl alcohol','alcohol denat']}
 
 # 雙向/單向?
+conflicts = [
+    ['VitaminC','Lactic'],['VitaminC','Salicylic'],['VitaminC','Glycolic'],['VitaminC','Retinol'],['VitaminC','Niacinamide'], \
+    ['Retinol','Lactic'],['Retinol','Salicylic'],['Retinol','Glycolic'],\
+    ['Glycolic','Salicylic']]
 
-kgraph.add((myns['VitaminC'], myns['conflictWith'], myns['Lactic']))
-kgraph.add((myns['VitaminC'], myns['conflictWith'], myns['Salicylic']))
-kgraph.add((myns['VitaminC'], myns['conflictWith'], myns['Glycolic']))
-
-kgraph.add((myns['Retinol'], myns['conflictWith'], myns['Lactic']))
-kgraph.add((myns['Retinol'], myns['conflictWith'], myns['Salicylic']))
-kgraph.add((myns['Retinol'], myns['conflictWith'], myns['Glycolic']))
-kgraph.add((myns['Retinol'], myns['conflictWith'], myns['VitaminC']))
-
-kgraph.add((myns['Glycolic'], myns['conflictWith'], myns['Salicylic']))
-kgraph.add((myns['Niacinamide'], myns['conflictWith'], myns['VitaminC']))
-
-
+for g1,g2 in conflicts:
+    kgraph.add((myns[g1], myns['conflictWith'], myns[g2]))
+    kgraph.add((myns[g2], myns['conflictWith'], myns[g1]))
 
 for g in chemclass.keys():
     gURI = URIRef(myns[g])
@@ -224,6 +223,7 @@ for index, row in ingredient.iterrows():
         this = URIRef(myns[uriname])
         kgraph.add((this, RDF.type, myns['Compound']))
         kgraph.add((this, foaf['name'], Literal(row['name'].title())))
+        kgraph.add((this, owl['sameAs'], Literal('http://www.cosdna.com/eng/{}.html'.format(row['ingredient_id']))))
         
         if row['function']:
             for f in row['function']:
@@ -240,6 +240,7 @@ for index, row in ingredient.iterrows():
         if row['safety']:
             for s in row['safety']:
                 kgraph.add((this, myns['safety'], Literal(s, datatype=XSD.integer)))
+        
         
         # if row['chem_id']>0:
         if not math.isnan(row['chem_id']):
@@ -258,6 +259,11 @@ for index, row in ingredient.iterrows():
                     if len(matching) > 0:
                         kgraph.add((this, myns['groupOf'], myns[g]))        
         else:
+            if row['synonym']:
+                for s in row['synonym']:
+                    if s != row['name']:
+                        kgraph.add((this, myns['synonym'], Literal(s)))
+
             for g, l in chemclass.items():
                 matching = [ ll for ll in l if ll.lower() in row['name'].lower()]
                 if len(matching) > 0:

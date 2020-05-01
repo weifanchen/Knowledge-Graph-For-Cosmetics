@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from SPARQLWrapper import SPARQLWrapper, JSON
-from Queries import queryByAttributes, queryByName, queryFindConflictedGroup, queryFindFitProduct, queryByIngredient
+from Queries import queryByAttributes, queryByName, queryFindConflictedGroup, queryFindFitProduct, queryByIngredient_others, queryByIngredient_synonym, queryByIngredient
 from werkzeug.datastructures import ImmutableMultiDict
  
 app = Flask(__name__)
@@ -29,8 +29,9 @@ def Advanced_param(res):
 @app.route('/', methods=['GET'])
 def ping_pong():
     #res = ImmutableMultiDict([('type', 'Basic'), ('product', '1932920')])#1932920
-    #res = ImmutableMultiDict([('type', 'Compound'), ('ingredient', 'chem1d76ac2137')])#1932920
+    res = ImmutableMultiDict([('type', 'Compound'), ('ingredient', 'chem60de5d6467')])
     #res = ImmutableMultiDict([('type', 'Advanced'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives'), ('price[]', '0'), ('price[]', '280'),('function[]','Emollient'),('function[]','Whitening')])    #res = request.args
+    #res = ImmutableMultiDict([('type', 'Advanced'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('brand', 'SEPHORA COLLECTION'), ('price[]', '0'), ('price[]', '260'), ('acne', '3'), ('irri', '2')])
     #res = ImmutableMultiDict([('type', 'Collection'),('collections[]', 'The True Cream Aqua Bomb'),('collections[]', 'Protini™ Polypeptide Moisturizer'), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives')])
     #res = ImmutableMultiDict([('type', 'Collection'),('collections[]', 2005023),('collections[]', 2025633), ('categories[]', 'Moisturizers'), ('categories[]', 'Face Oils'), ('acne', '2'), ('irri', '3'), ('fda[]', 'Fragrance'), ('fda[]', 'Preservatives'),('price[]', '0'), ('price[]', '280')])
 

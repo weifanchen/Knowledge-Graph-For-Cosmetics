@@ -2,7 +2,7 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 import json
 import re
 from collections import defaultdict
-
+# ./fuseki-server --mem /ds
 
 sparql = SPARQLWrapper("http://localhost:3030/ds/query")
 
@@ -16,7 +16,7 @@ prefixes ="""
         prefix schema: <https://schema.org/> 
         prefix xml: <http://www.w3.org/XML/1998/namespace> 
         prefix xsd: <http://www.w3.org/2001/XMLSchema#> 
-
+        
         """
 def ResultFormat_basic(results,pid):
     ans = dict()
@@ -67,15 +67,74 @@ def ResultFormat_Advance(results):
 
 def ResultFormat_Ingredient(results):
     # only one result
-    ans = dict()
+    ans = defaultdict(list)
     if results['results']['bindings']:
-        rr = results['results']['bindings'][0]
-        for key in rr.keys():
-            ans[key] = rr[key]['value']
-        ans['ingredient_id'] = ans['ingredient_id'].split('/')[-1]
+        ans['ingredient_id'] = results['results']['bindings'][0]['ingredient_id']['value'].split('/')[-1]
+        ans['name'] = results['results']['bindings'][0]['name']['value']
+        ans['url'] = results['results']['bindings'][0]['url']['value']
+        if 'forumula' in results['results']['bindings'][0].keys(): ans['forumula'] = results['results']['bindings'][0]['forumula']['value']
+        if 'safety' in results['results']['bindings'][0].keys(): ans['safety'] = results['results']['bindings'][0]['safety']['value']
+        if 'acne' in results['results']['bindings'][0].keys(): ans['acne'] = results['results']['bindings'][0]['acne']['value']
+        if 'irritant' in results['results']['bindings'][0].keys(): ans['safety'] = results['results']['bindings'][0]['irritant']['value']
+        for rr in results['results']['bindings']: # multiple results
+            if 'function' in rr.keys() and rr['function']['value'] not in ans['function']:
+                ans['function'].append(rr['function']['value']) 
+            if 'attribute' in rr.keys() and rr['attribute']['value'] not in ans['attribute']:
+                ans['attribute'].append(rr['attribute']['value'])
     else:
-        return None
+        return None   
     return ans
+
+def ResultFormat_ingredient_synonym(results):
+    synonyms = list()
+    if results['results']['bindings']:
+        for rr in results['results']['bindings']:
+            synonyms.append(rr['synonym']['value'])
+    return synonyms
+
+def queryByIngredient(iid):
+    results = queryByIngredient_others(iid)
+    syns = queryByIngredient_synonym(iid)
+    if syns:
+        results['synonyms'] = syns
+    return results
+
+def queryByIngredient_others(iid):
+    query ="""
+        SELECT DISTINCT * 
+        WHERE{{
+            VALUES ?ingredient_id {{
+            {}
+            }}
+            ?ingredient_id a myns:Compound;
+                        foaf:name ?name;
+            OPTIONAL{{?ingredient_id myns:formula ?forumula ;}}
+            OPTIONAL{{?ingredient_id ns1:sameAs ?url ;}}         	  
+            OPTIONAL{{?ingredient_id myns:hasFunction [rdfs:label ?function]}}
+            OPTIONAL{{?ingredient_id myns:hasAttribute [rdfs:label ?attribute]}}
+            OPTIONAL{{?ingredient_id myns:safety ?safety;}}
+            OPTIONAL {{?ingredient_id myns:acne ?acne;}}
+            OPTIONAL {{?ingredient_id myns:irritant ?irritant;}}
+        }}
+    """
+    sparql.setQuery(prefixes + query.format('myns:'+iid))
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+    return ResultFormat_Ingredient(results)
+
+def queryByIngredient_synonym(iid):
+    query ="""
+        SELECT DISTINCT * 
+        WHERE{{
+            {} a myns:Compound;
+                        myns:synonym ?synonym.
+        }}
+    """
+    sparql.setQuery(prefixes + query.format('myns:'+iid))
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+    print(results)
+    return ResultFormat_ingredient_synonym(results)
 
 
 def queryByName(pid):
@@ -112,30 +171,6 @@ def queryByName(pid):
     print(results)
     return ResultFormat_basic(results,pid)
 
-
-
-def queryByIngredient(iid):
-    query ="""
-        SELECT DISTINCT * 
-        WHERE{{
-            VALUES ?ingredient_id {{
-            {}
-            }}
-            ?ingredient_id a myns:Compound;
-                        foaf:name ?name;
-            OPTIONAL{{?ingredient_id myns:formula ?forumula ;}}
-            OPTIONAL{{?ingredient_id ns1:sameAs ?link ;}}         	  
-            OPTIONAL{{?ingredient_id myns:hasFunction [rdfs:label ?function]}}
-            OPTIONAL{{?ingredient_id myns:safety ?safety;}}
-            OPTIONAL {{?ingredient_id myns:acne ?acne;}}
-            OPTIONAL {{?ingredient_id myns:irritant ?irritant;}}
-        }}
-    """
-    sparql.setQuery(prefixes + query.format('myns:'+iid))
-    sparql.setReturnFormat(JSON)
-    results = sparql.query().convert()
-    return ResultFormat_Ingredient(results)
-
 def queryByAttributes(param):
     query = """
     SELECT DISTINCT ?product ?pid ?name ?url
@@ -155,12 +190,11 @@ def queryByAttributes(param):
             myns:hasSize ?size.
         ?ingredient myns:hasFunction [rdfs:label ?function].
   		FILTER (?price>={price[0]} && ?price<={price[1]})
-    """
-    
+    """  
     query = prefixes + query
     if param['minicategory']: query +="""FILTER (?minicategory IN ({minicategory}))"""
     if param['function']: query +="""FILTER (?function IN ({function}))"""
-    if param['brand']: query += """FILTER EXISTS {{?brand rdfs:label "{brand}" }}"""
+    if param['brand']: query += """FILTER (?brand = "{brand}" )"""
     if param['Preservatives']: 
         query += """MINUS{{?product myns:hasIngredient [myns:hasAttribute myns:Preservatives].}}"""
         query += """MINUS{{?product myns:hasIngredient [myns:hasFunction myns:Preservative].}}"""
