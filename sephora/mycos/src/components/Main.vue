@@ -1,6 +1,6 @@
 <template>
     <div style="width:100%;display:flex;background-color:#F6F7FB;">
-        <div id='left' style="width:7%;background-color:#415E52;">
+        <div id='left' style="width:7%;background-color:#3A4161;">
             <div style="height:95px;padding: 10px 15px;color: #fff;font-family:'Anton';font-size:24px;background-color:#230F35;">Cos<br>Chem</div>
             <!-- <div style="height:50px;margin:15px;padding: 10px 0px;color: #230F35;font-family:'Anton';font-size:12px;writing-mode: vertical-lr;text-orientation: mixed;">INF558 Building Knowledge Graph</div> -->
         </div>
@@ -8,7 +8,7 @@
             <div id="tabs" class="container">
             
                 <div class="tabs">
-                    <a v-on:click="activetab=1" v-bind:class="[ activetab === 1 ? 'active' : '' ]">Product</a>
+                    <a v-on:click="activetab=1; productLoaded=fasle" v-bind:class="[ activetab === 1 ? 'active' : '' ]">Product</a>
                     <a v-on:click="activetab=2" v-bind:class="[ activetab === 2 ? 'active' : '' ]">Ingredient</a>
                     <a v-on:click="activetab=3;clickAdvanced=false" v-bind:class="[ activetab === 3 ? 'active' : '' ]">Advanced</a>
                 </div>
@@ -52,7 +52,7 @@
                         <div style='display:flex; padding: 0px 20px;'>
                             <div style='width:223.97px;margin-right: 40px;'>
                                 <p style='margin-bottom: 5px;'>Categories</p>
-                                <Select v-model="selectCat" multiple placeholder='Choose Category' style="width: 223.97px;">
+                                <Select v-model="selectCat" multiple placeholder='choose some categories' style="width: 223.97px;">
                                     <OptionGroup label="Moisturizers">
                                         <Option v-for="item in categoryList.Moisturizers" :value="item.value" :key="item.value">{{ item.label }}</Option>
                                     </OptionGroup>
@@ -102,7 +102,7 @@
                             </div>
                             <div class='filter' style='width:223.97px;margin-right: 30px;'>
                                 <p style='width:223.97px;margin-bottom: 5px;'>Brand</p>
-                                <Select v-model="bra" placeholder='Choose brand'>
+                                <Select v-model="bra" placeholder='choose a brand'>
                                     <Option v-for="item in brand" :value="item" :key="item">{{ item }}</Option>
                                 </Select>
                             </div>
@@ -115,7 +115,7 @@
                                 <label><input v-model="acne" type="radio" name="acne" v-bind:value="4"/><span data-points="4">4</span></label>
                                 <label><input v-model="acne" type="radio" name="acne" v-bind:value="5"/><span data-points="5">5</span></label>
                             </div>
-                            <div class='filter' style='width:17%;padding-left:15px;padding-right:15px;'>
+                            <div class='filter' style='width:18%;padding-left:15px;padding-right:15px;'>
                                 <p>Price</p>
                                 <Slider v-model="pricegap" range :min="0" :max="500" :step="10" style="margin-left:4px;"/>
                             </div>
@@ -125,13 +125,13 @@
                         <div style='display:flex; padding: 0px 20px;margin-top:15px;'>
                             <div style='width:223.97px;margin-right: 40px;'>
                                 <p style='margin-bottom: 5px;'>Functions</p>
-                                <Select style='width:223.97px;' v-model="func" multiple placeholder='Choose Category'>
+                                <Select style='width:223.97px;' v-model="func" multiple placeholder='choose desired functions'>
                                     <Option v-for="item in funcList" :value="item" :key="item">{{ item }}</Option>
                                 </Select>
                             </div>
                             <div style='width:223.97px;margin-right: 30px;'>
                                 <p style='margin-bottom: 5px;'>Avoid</p>
-                                <Select style='width:223.97px' v-model="fda" multiple placeholder='Choose Category'>
+                                <Select style='width:223.97px' v-model="fda" multiple placeholder='choose some restrictions'>
                                     <Option v-for="item in avoidList" :value="item.value" :key="item.value">{{ item.label }}</Option>
                                 </Select>
                             </div>
@@ -143,7 +143,7 @@
                                 <label><input v-model="irri" type="radio" name="irri" v-bind:value="4"/><span data-points="4">4</span></label>
                                 <label><input v-model="irri" type="radio" name="irri" v-bind:value="5"/><span data-points="5">5</span></label>
                             </div>
-                            <div style='width:17%;padding-left:10px;'>
+                            <div style='width:20%;padding-left:10px;'>
                                 <p>Match Collection</p>
                                 <div>
                                     <label class="switch">
@@ -156,7 +156,7 @@
                                 <!-- <Checkbox v-model="coll"></Checkbox>
                                 <span><strong>    Fit my collections!   </strong></span> -->
                             </div>
-                            <div class='filter' style='width:223.97px;padding-top:20px;padding-left:20px'>
+                            <div class='filter' style='width:200px;padding-top:20px;padding-left:20px'>
                                 <Button shape="circle" icon="ios-search" @click="getMsg">Filter</Button>
                                 <!-- <Button shape="circle" icon="ios-search" @click="getMsg"></Button> -->
                             </div>
@@ -171,7 +171,7 @@
                         <div class='leftPanel' style="width:48%">
                             <div style='display:flex;padding-bottom:20px;'>
                                 <img v-bind:src=productDict[selected.id].image style="max-height:160px;width:140px;border-radius: 20px; border:1.5px solid #F6F4F9">
-                                <div style="padding-left: 50px; width:80%;padding-right: 70px;">
+                                <div style="padding-left: 50px; width:80%;padding-right: 50px;">
                                     <p>{{msg.brand}}</p>
                                     <!-- {{msg}} -->
                                     <p style="font-size:22px; font-weight:bold;color:#505050">{{msg.product_name}}</p> 
@@ -218,29 +218,32 @@
                             <div id='ing' style="float: left; width: 30%;">
                                 <ul style="list-style-type:none;">
                                     <li v-if = "ingmsg.hasOwnProperty('forumula')"><strong>Chemical Formula</strong></li>
-                                    <li v-if = "ingmsg.hasOwnProperty('link')"><strong>PubChem Link</strong></li>
-                                    <li v-if = "ingmsg.hasOwnProperty('function')"><strong>Function</strong></li>
+                                    <li v-if = "ingmsg.hasOwnProperty('coslink')"><strong>CosDNA Link</strong></li>
+                                    <li v-if = "ingmsg.hasOwnProperty('publink')"><strong>PubChem Link</strong></li>
                                     <li v-if = "ingmsg.hasOwnProperty('acne')"><strong>Acne</strong></li>
                                     <li v-if = "ingmsg.hasOwnProperty('irritant')"><strong>Irritant</strong></li>
                                     <li v-if = "ingmsg.hasOwnProperty('safety')"><strong>Safety</strong></li>
-                                    <li v-if = "ingmsg.hasOwnProperty('synonym')"><strong>Function</strong></li>
+                                    <li v-if = "ingmsg.hasOwnProperty('function')" style="height:70px"><strong>Function</strong></li>
+                                    <li v-if = "ingmsg.hasOwnProperty('synonym')"><strong>Synonyms</strong></li>
                                 </ul>
                             
                             </div>
                             <div id='ing' style="float: right; width: 70%;">
                                 <ul style="list-style-type:none;">
                                     <li v-if = "ingmsg.hasOwnProperty('forumula')">{{ingmsg.forumula}}</li>
-                                    <li v-if = "ingmsg.hasOwnProperty('link')"><a v-bind:href="ingmsg.link" target="_blank">{{ingmsg.link}}</a></li>
-                                    <li v-if = "ingmsg.hasOwnProperty('function')">{{ingmsg.function}}</li>
+                                    <li v-if = "ingmsg.hasOwnProperty('coslink')"><a v-bind:href="ingmsg.coslink" target="_blank">{{ingmsg.coslink}}</a></li>
+                                    <li v-if = "ingmsg.hasOwnProperty('publink')"><a v-bind:href="ingmsg.publink" target="_blank">{{ingmsg.publink}}</a></li>
                                     <li v-if = "ingmsg.hasOwnProperty('acne')">{{ingmsg.acne}}</li>
                                     <li v-if = "ingmsg.hasOwnProperty('irritant')">{{ingmsg.irritant}}</li>
                                     <li v-if = "ingmsg.hasOwnProperty('safety')">{{ingmsg.safety}}</li>
-                                    <li v-if = "ingmsg.hasOwnProperty('synonym')">{{ingmsg.synonym}}</li>
+                                    <li v-if = "ingmsg.hasOwnProperty('function')" style="height:70px"><p v-for="item in ingmsg.function" v-bind:key="item">{{item}}</p></li>
+                                    <li v-if = "ingmsg.hasOwnProperty('synonym')"><p v-for="item in ingmsg.synonym" v-bind:key="item">{{item}}</p></li>
                                 </ul>                           
                             </div>
                         </div>
                     </div>
                 </div>
+                <!-- {{msgLoaded}} -->
                 <div v-if="activetab === 3 && msgLoaded" class="tabcontent" style="padding: 50px 100px 50px 50px; ">
                     <div v-if="coll" style="padding-bottom: 15px;margin-bottom: 15px; border-bottom:1px solid #DCDEE2;min-height:100px">
                         <p style="margin-bottom: 15px;"><strong>My collections</strong></p>
@@ -251,14 +254,15 @@
                     </div>
                     <!-- {{msg}} -->
                     <div v-if="msgLoaded">
-                        <p>{{listmsg.length}} results</p>
+                        <p style="margin-bottom:30px" v-if="msgLoaded">{{listmsg.length}} results</p>
                         <div style="padding: 0px 20px;min-height:700px;">
-                            <div id='pro' v-for="item in listmsg" :key="item.id" style="display:flex; height:90px">
-                                <div style="float:left;width:90%">
-                                    <p v-if="item.product_id in productDict"  @click="getProduct(item)">{{item.product_name}}</p>
+                            <div class='pro' v-for="item in listmsg" :key="item.product_id" style="display:flex; height:90px;border-bottom: 1px solid #DCDEE2; margin-bottom: 30px;">
+                                <div v-if="productDict.hasOwnProperty(item.product_id)" style="float:right;width:90%">
+                                    <p id='productname' @click="getProduct(item)"><strong>{{item.product_name}}</strong></p>
+                                    <p>{{item.brand}} | {{item.minicategory}}</p>
                                 </div>
-                                <div style="float:right;width:90%">
-                                    <img v-if="item.product_id in productDict" v-bind:src="productDict[item.product_id].image" style="max-height:160px;width:50px"/>
+                                <div v-if="productDict.hasOwnProperty(item.product_id)" style="float:left;width:10%">
+                                    <img v-bind:src="productDict[item.product_id].image" style="max-height:160px;width:50px"/>
                                 </div>
 
                             </div>
@@ -383,6 +387,15 @@ export default{
             // console.log(this.selected)
             this.productLoaded = true;
             this.activetab = 1;
+
+            if(this.mycollect.includes(this.selected['id'])){
+                document.getElementById("collection").innerHTML = "Out of Collection"
+                document.getElementById("collection").className = "away"
+            }else{
+                document.getElementById("collection").innerHTML = "Add to Collection"
+                document.getElementById("collection").className = "add"
+            }
+
             // this.msg = proexample;
         },
         
@@ -416,7 +429,6 @@ export default{
 
         // get list
         getMsg(){
-            console.log("Hello")
             this.msgLoaded = false;
             this.listmsg = ''; 
             this.clickAdvanced = true;
@@ -443,8 +455,12 @@ export default{
                 .catch((error) => {
                     console.error(error);
                 });
-                this.msgLoaded = true;
+                
+                if(this.listmsg!=''){
+                    this.msgLoaded = true;
+                }
                 // this.msg = advexample;
+                this.msgLoaded = true;
 
             }else{
                 axios.get(path,  {
@@ -467,9 +483,14 @@ export default{
                     console.error(error);
                 });
                 this.msgLoaded = true;
+                if(this.listmsg!=''){
+                    this.msgLoaded = true;
+                }
                 // this.msg = advexample;
             }
+            // console.log("Hello")
             // this.listmsg = advexample;
+            // this.msgLoaded = true;
         },
 
         // autocomplete method
@@ -697,7 +718,7 @@ path {
     /* display: block;  */
     /* padding: 5px;  */
     position: relative; 
-    padding-left: 35px;
+    padding-left: 30px;
     /* padding-right: 20px; */
 }
 
@@ -914,7 +935,7 @@ li.ingredient:hover{
     padding: 3px 0px;
 }
 
-#pro div p:hover{
+.pro div p#productname:hover{
     cursor: pointer;
     color:rgb(120, 137, 179);
 }

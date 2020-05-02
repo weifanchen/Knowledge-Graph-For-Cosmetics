@@ -51,6 +51,7 @@ def ping_pong():
         return jsonify(result)
     elif res['type'] == 'Advanced':
         result = queryByAttributes(Advanced_param(res))
+        print(result)
         return jsonify(result)
     elif res['type'] == 'Collection':
         result = 'No result'

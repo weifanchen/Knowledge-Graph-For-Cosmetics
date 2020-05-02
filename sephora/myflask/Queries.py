@@ -74,7 +74,14 @@ def ResultFormat_Ingredient(results):
     if results['results']['bindings']:
         ans['ingredient_id'] = results['results']['bindings'][0]['ingredient_id']['value'].split('/')[-1]
         ans['name'] = results['results']['bindings'][0]['name']['value']
-        ans['link'] = results['results']['bindings'][0]['url']['value']
+        
+        urls = set([i['url']['value'] for i in results['results']['bindings']])
+        for url in urls:
+            if 'cosdna' in url: ans['coslink'] = url
+            elif 'pubchem' in url: ans['publink'] = url
+        # if 'cosdna' in results['results']['bindings'][0]['url']['value']:
+        #     ans['coslink'] = results['results']['bindings'][0]['url']['value']
+        
         if 'forumula' in results['results']['bindings'][0].keys(): ans['forumula'] = results['results']['bindings'][0]['forumula']['value']
         if 'safety' in results['results']['bindings'][0].keys(): ans['safety'] = results['results']['bindings'][0]['safety']['value']
         if 'acne' in results['results']['bindings'][0].keys(): ans['acne'] = results['results']['bindings'][0]['acne']['value']
@@ -99,7 +106,7 @@ def queryByIngredient(iid):
     results = queryByIngredient_others(iid)
     syns = queryByIngredient_synonym(iid)
     if syns:
-        results['synonyms'] = syns
+        results['synonym'] = syns[:min(len(syns),10)]
     return results
 
 def queryByIngredient_others(iid):
@@ -332,19 +339,19 @@ def queryFindConflictedGroup(collections):
 def queryFindFitProduct(pids,conflictedgroup):
     # find products qualified for conflicted group and pid
     query="""
-    SELECT DISTINCT ?product ?pid ?name ?url ?minicategory  ?brand ?love ?price ?size
+    SELECT DISTINCT ?product ?pid ?name ?url ?minicategory ?brand ?love
     WHERE{{
         ?product a myns:skincare_product;
             myns:product_id ?pid;
             myns:product_url ?url;
             myns:minicategory [rdfs:label ?minicategory];
             myns:product_name ?name;
-            myns:brand ?brand;
-            myns:numOfLoves ?love;
-            myns:size_price_pair ?spp.
-        ?spp myns:fromProduct ?product;
-            myns:hasPrice ?price;
-            myns:hasSize ?size.
+            myns:brand [rdfs:label ?brand];
+            myns:numOfLoves ?love.
+            #myns:size_price_pair ?spp.
+        #?spp myns:fromProduct ?product;
+        #    myns:hasPrice ?price;
+        #    myns:hasSize ?size.
       FILTER (?pid IN ({}))
     """.format(pids)
     for c in conflictedgroup:
