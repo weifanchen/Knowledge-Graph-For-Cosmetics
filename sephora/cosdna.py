@@ -60,12 +60,14 @@ def ingredient_preprocessing(text):
 
 def get_soup_by_ingredient(driver,product):
     driver.get('http://www.cosdna.com/eng/ingredients.php')
-    time.sleep(random.randint(2,4))
+    #time.sleep(random.randint(2,4))
+    time.sleep(1)
     ingredients_list_box = driver.find_element_by_css_selector('textarea.form-control')
     text=ingredient_preprocessing(product['ingredients'])
     ingredients_list_box.send_keys(text)
     ingredients_list_box.submit() 
-    time.sleep(random.randint(2,4))
+    time.sleep(1)
+    #time.sleep(random.randint(2,4))
     try:
         element = driver.find_element_by_css_selector('table.table.table-hover.border')
         html = driver.execute_script("return arguments[0].outerHTML;", element)
@@ -88,7 +90,8 @@ def get_soup_via_name(driver,keyword):
     product_name_box = driver.find_element_by_css_selector('input.form-control')
     product_name_box.send_keys(keyword)
     product_name_box.send_keys(Keys.ENTER)
-    time.sleep(random.randint(1,3))
+    #time.sleep(random.randint(1,3))
+    time.sleep(1)
     try:
         sort_latest = driver.find_element_by_css_selector('div.sort a:first-of-type') #CLICK THE FIRST ONE
         sort_latest.click()
@@ -104,8 +107,8 @@ def get_soup_via_name(driver,keyword):
         print('no result by name: ',keyword)
         return ''
 
-# product_list_path = "./output/sephora_skincare_product_ingredient_list.jl"
-product_list_path = "./output/sephora_skincare_product_6_updated2.jl"
+product_list_path = "./output/sephora_skincare_product_ingredient_list.jl"
+#product_list_path = "./output/sephora_skincare_product_6_updated2.jl"
 
 product_list = []
 with open(product_list_path) as json_file:
@@ -118,8 +121,8 @@ with open(ingredient_profile_path) as f:
     for line in f:
         ingredient_profile.append(json.loads(line))
 
-productfile = open('./output/sephora_skincare_product_6_updated3.jl', 'a+')
-ingredientfile = open('./output/ingredients.jl', 'a+')
+productfile = open('./output/sephora_skincare_product_updated3.jl', 'a+')
+ingredientfile = open('./output/ingredients_test.jl', 'a+')
 #product_wo_ingredient = open('./output/product_wo_ingredient.jl', 'a+')
 
 driver = webdriver.Chrome('/Users/weifanchen/chromedriver')
@@ -127,14 +130,14 @@ driver = webdriver.Chrome('/Users/weifanchen/chromedriver')
 
 for product in product_list[:]:
     soup=''
-    if product['ingredient_list'] == []:
+    #if product['ingredient_list'] == []:
         #print('empty ingredient list',product['product_name'])
-        if product['ingredients'] != '':
-            soup = get_soup_by_ingredient(driver,product)
-        if not soup:
-            #print('empty ingredient description',product['product_name'])
-            keyword = product['brand']+ ' '+product['product_name']
-            soup = get_soup_via_name(driver,keyword)
+    if product['ingredients'] != '':
+        soup = get_soup_by_ingredient(driver,product)
+    if not soup:
+        #print('empty ingredient description',product['product_name'])
+        keyword = product['brand']+ ' '+product['product_name']
+        soup = get_soup_via_name(driver,keyword)
     if soup:
         ingredient_info_list =  get_ingredient_info(soup,ingredient_profile)
         product['ingredient_list'] = [i['name'] for i in ingredient_info_list]
@@ -158,12 +161,4 @@ selenium.common.exceptions.NoSuchElementException: Message: no such element: Una
 raise RemoteDisconnected("Remote end closed connection without"
 http.client.RemoteDisconnected: Remote end closed connection without response
 '''
-
-    
-        
-
-
-
-
-
 
