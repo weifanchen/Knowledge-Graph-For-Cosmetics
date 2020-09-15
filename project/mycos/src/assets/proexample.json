@@ -1,0 +1,15 @@
+{
+	"product_id": 2025633,
+	"product_name": "Protini\u2122 Polypeptide Moisturizer",
+	"brand": "Drunk Elephant",
+	"category": "Skincare", 
+	"subcategory": "Moisturizers", 
+	"minicategory": "Moisturizers",
+	"url": "https://www.sephora.com/product/protini-tm-polypeptide-cream-P427421?icid2=products%20grid:p427421",
+	"ingredients": [{"name":"Methyl glucose sesquistearate","function":["Emollient","Emulsifier"],"acne":null,"irritant":null,"safety":[1],"synonym":["Methyl glucose sesquistearate"],"ingredient_id":"91717f1945","chem_id":"155145"},
+					{"name":"Dimethicone Crosspolymer","function":["Viscosity Control"],"acne":null,"irritant":null,"safety":[1],"synonym":["Dimethicone Crosspolymer-3","Dimethicone Crosspolymer"],"ingredient_id":"509e461105","chem_id":null},
+					{"name":"PEG-20 Methyl Glucose Sesquistearate","function":["Emulsifier"],"acne":null,"irritant":null,"safety":[3],"synonym":["PEG-20 Methyl Glucose Sesquistearate"],"ingredient_id":"a216e72131","chem_id":"3085738"},
+					{"name":"C12-15 Alkyl Ethylhexanoate","function":["Emollient"],"acne":null,"irritant":null,"safety":[1],"synonym":["C12-15 Alkyl Ethylhexanoate"],"ingredient_id":"ed25db10762","chem_id":"222339"},
+					{"name":"Sambucus Nigra Fruit Extract","function":["Astringent"],"acne":null,"irritant":null,"safety":[1],"synonym":["Sambucus Nigra Fruit Extract"],"ingredient_id":"d3295918674","chem_id":null},
+					{"name":"Saccharomyces\/Magnesium Ferment","function":[],"acne":null,"irritant":null,"safety":[1],"synonym":["Saccharomyces\/Magnesium Ferment"],"ingredient_id":"88ece610785","chem_id":null}]
+}

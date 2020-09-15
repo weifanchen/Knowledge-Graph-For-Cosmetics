@@ -1,0 +1,4 @@
+__pycache__
+.DS_Store
+chromedriver
+project/output/old_files/
